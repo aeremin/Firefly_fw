@@ -16,11 +16,17 @@ struct RadioPacket {
   uint8_t Power;
 } __attribute__((__packed__));
 
+// Representation of CC1101 radio tranceiver chip.
+// See datasheet here: http://www.ti.com/lit/ds/symlink/cc1101.pdf
 class Cc1101 {
  public:
+  // TODO(aeremin) Also pass pin numbers (sck, mosi, miso, ss and potentially gd0)
   Cc1101(nrf_drv_spi_t spi) : spi_(spi) {}
 
+  // TODO(aeremin) Return bool (false if failed to init)
   void Init();
+
+  // TODO(aeremin) Support setting an explicit timeout
   bool Receive(RadioPacket* result);
 
  private:

@@ -21,6 +21,13 @@ void Cc1101::Init() {
   APP_ERROR_CHECK(nrf_drv_spi_init(&spi_, &spi_config, NULL, NULL));
 
   Reset();
+  
+  // TODO(aeremin) This is a hack. Instead we should wait for 
+  // CC1101 to became ready by listening for MISO to become low.
+  // This actually should be done every time we initiate a transfer (i.e. pull CS low),
+  // but there is no direct support for that in nRF SPI library. From the datasheet it
+  // seems that it's actually only required when leaving SLEEP or XOFF states
+  // (see p. 29, "4-wire Serial Configuration and Data Interface").
   nrf_delay_ms(20);
 
   WriteRegister(CC_PKTLEN, 40);
@@ -82,7 +89,11 @@ bool Cc1101::ReadFifo(RadioPacket* result) {
       return false;
     }
   }
+  
+  // TODO(aeremin) This is hack. Understand what we should wait for
+  // here and remove.
   nrf_delay_ms(10);
+
   uint8_t tx_single = CC_FIFO | CC_READ_FLAG | CC_BURST_FLAG;
   uint8_t tx[14];
   for (int i = 0; i < 14; ++i) {
