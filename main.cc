@@ -78,7 +78,6 @@ int main(void)
     
     while (true)
     {
-        NRF_LOG_FLUSH();
         RadioPacket r;
         if (cc1101.Receive(&r)) {
           accumulator.Cnt++;
@@ -87,7 +86,6 @@ int main(void)
           accumulator.Damage = r.Damage + 1;
         }
         NRF_LOG_FLUSH();
-        // bsp_board_led_invert(BSP_BOARD_LED_0);
         nrf_delay_ms(100);
     }
 }
