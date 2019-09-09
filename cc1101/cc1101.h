@@ -36,7 +36,12 @@ class Cc1101 {
   // If status is provided, status byte will be written into it.
   void WriteStrobe(uint8_t instruction, uint8_t* status = nullptr);
 
-  uint8_t WriteRegister(uint8_t k, uint8_t v);
+  // Sets a configuration register to a provided value.
+  // See detailed description of available registers in datasheet, p.66
+  // 29 Configuration Registers and Table 45: SPI Address Space.
+  // If statuses is provided (must be a 2-byte array), status bytes will be written into it.
+  void WriteConfigurationRegister(uint8_t reg, uint8_t value, uint8_t* statuses = nullptr);
+
   uint8_t ReadRegister(uint8_t ARegAddr, uint8_t* status);
   uint8_t ReadOneFifo();
   bool ReadFifo(RadioPacket* result);
@@ -46,9 +51,9 @@ class Cc1101 {
   void EnterTX()     { WriteStrobe(CC_STX);  }
   void EnterRX()     { WriteStrobe(CC_SRX);  }
   void FlushRxFIFO() { WriteStrobe(CC_SFRX); }
-  void SetTxPower(uint8_t APwr)  { WriteRegister(CC_PATABLE, APwr); }
-  void SetPktSize(uint8_t ASize) { WriteRegister(CC_PKTLEN, ASize); }
-  void SetChannel(uint8_t AChannel) { WriteRegister(CC_CHANNR, AChannel); }
+  void SetTxPower(uint8_t APwr)  { WriteConfigurationRegister(CC_PATABLE, APwr); }
+  void SetPktSize(uint8_t ASize) { WriteConfigurationRegister(CC_PKTLEN, ASize); }
+  void SetChannel(uint8_t AChannel) { WriteConfigurationRegister(CC_CHANNR, AChannel); }
 
   const nrf_drv_spi_t spi_;
 };

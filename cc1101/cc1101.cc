@@ -30,7 +30,7 @@ void Cc1101::Init() {
   // (see p. 29, "4-wire Serial Configuration and Data Interface").
   nrf_delay_ms(20);
 
-  WriteRegister(CC_PKTLEN, 40);
+  WriteConfigurationRegister(CC_PKTLEN, 40);
   uint8_t b = ReadRegister(CC_PKTLEN, NULL);
   NRF_LOG_INFO("Read b = %d", b);
 
@@ -46,12 +46,9 @@ void Cc1101::WriteStrobe(uint8_t instruction, uint8_t* status) {
   APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi_, &instruction, 1, status, (status ? 1 : 0)));
 }
 
-uint8_t Cc1101::WriteRegister(uint8_t k, uint8_t v) {
-  uint8_t tx[] = {k, v};
-  uint8_t status[] = {137, 137};
-  APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi_, tx, 2, status, 2));
-  NRF_LOG_INFO("WriteRegister: status = %d %d", status[0], status[1]);
-  return 0;
+void Cc1101::WriteConfigurationRegister(uint8_t reg, uint8_t value, uint8_t* statuses) {
+  uint8_t tx[] = {reg, value};
+  APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi_, tx, 2, statuses, (statuses ? 2 : 0)));
 }
 
 uint8_t Cc1101::ReadRegister(uint8_t ARegAddr, uint8_t* status) {
@@ -126,41 +123,41 @@ bool Cc1101::Receive(RadioPacket* result) {
 }
 
 void Cc1101::RfConfig() {
-  WriteRegister(CC_FSCTRL1,  CC_FSCTRL1_VALUE);    // Frequency synthesizer control.
-  WriteRegister(CC_FSCTRL0,  CC_FSCTRL0_VALUE);    // Frequency synthesizer control.
-  WriteRegister(CC_FREQ2,    CC_FREQ2_VALUE);      // Frequency control word, high byte.
-  WriteRegister(CC_FREQ1,    CC_FREQ1_VALUE);      // Frequency control word, middle byte.
-  WriteRegister(CC_FREQ0,    CC_FREQ0_VALUE);      // Frequency control word, low byte.
-  WriteRegister(CC_MDMCFG4,  CC_MDMCFG4_VALUE);    // Modem configuration.
-  WriteRegister(CC_MDMCFG3,  CC_MDMCFG3_VALUE);    // Modem configuration.
-  WriteRegister(CC_MDMCFG2,  CC_MDMCFG2_VALUE);    // Modem configuration.
-  WriteRegister(CC_MDMCFG1,  CC_MDMCFG1_VALUE);    // Modem configuration.
-  WriteRegister(CC_MDMCFG0,  CC_MDMCFG0_VALUE);    // Modem configuration.
-  WriteRegister(CC_CHANNR,   CC_CHANNR_VALUE);     // Channel number.
-  WriteRegister(CC_DEVIATN,  CC_DEVIATN_VALUE);    // Modem deviation setting (when FSK modulation is enabled).
-  WriteRegister(CC_FREND1,   CC_FREND1_VALUE);     // Front end RX configuration.
-  WriteRegister(CC_FREND0,   CC_FREND0_VALUE);     // Front end RX configuration.
-  WriteRegister(CC_MCSM0,    CC_MCSM0_VALUE);      // Main Radio Control State Machine configuration.
-  WriteRegister(CC_FOCCFG,   CC_FOCCFG_VALUE);     // Frequency Offset Compensation Configuration.
-  WriteRegister(CC_BSCFG,    CC_BSCFG_VALUE);      // Bit synchronization Configuration.
-  WriteRegister(CC_AGCCTRL2, CC_AGCCTRL2_VALUE);   // AGC control.
-  WriteRegister(CC_AGCCTRL1, CC_AGCCTRL1_VALUE);   // AGC control.
-  WriteRegister(CC_AGCCTRL0, CC_AGCCTRL0_VALUE);   // AGC control.
-  WriteRegister(CC_FSCAL3,   CC_FSCAL3_VALUE);     // Frequency synthesizer calibration.
-  WriteRegister(CC_FSCAL2,   CC_FSCAL2_VALUE);     // Frequency synthesizer calibration.
-  WriteRegister(CC_FSCAL1,   CC_FSCAL1_VALUE);     // Frequency synthesizer calibration.
-  WriteRegister(CC_FSCAL0,   CC_FSCAL0_VALUE);     // Frequency synthesizer calibration.
-  WriteRegister(CC_TEST2,    CC_TEST2_VALUE);      // Various test settings.
-  WriteRegister(CC_TEST1,    CC_TEST1_VALUE);      // Various test settings.
-  WriteRegister(CC_TEST0,    CC_TEST0_VALUE);      // Various test settings.
-  WriteRegister(CC_FIFOTHR,  CC_FIFOTHR_VALUE);    // fifo threshold
-  WriteRegister(CC_IOCFG2,   CC_IOCFG2_VALUE);     // GDO2 output pin configuration.
-  WriteRegister(CC_IOCFG0,   CC_IOCFG0_VALUE);     // GDO0 output pin configuration.
-  WriteRegister(CC_PKTCTRL1, CC_PKTCTRL1_VALUE);   // Packet automation control.
-  WriteRegister(CC_PKTCTRL0, CC_PKTCTRL0_VALUE);   // Packet automation control.
+  WriteConfigurationRegister(CC_FSCTRL1,  CC_FSCTRL1_VALUE);    // Frequency synthesizer control.
+  WriteConfigurationRegister(CC_FSCTRL0,  CC_FSCTRL0_VALUE);    // Frequency synthesizer control.
+  WriteConfigurationRegister(CC_FREQ2,    CC_FREQ2_VALUE);      // Frequency control word, high byte.
+  WriteConfigurationRegister(CC_FREQ1,    CC_FREQ1_VALUE);      // Frequency control word, middle byte.
+  WriteConfigurationRegister(CC_FREQ0,    CC_FREQ0_VALUE);      // Frequency control word, low byte.
+  WriteConfigurationRegister(CC_MDMCFG4,  CC_MDMCFG4_VALUE);    // Modem configuration.
+  WriteConfigurationRegister(CC_MDMCFG3,  CC_MDMCFG3_VALUE);    // Modem configuration.
+  WriteConfigurationRegister(CC_MDMCFG2,  CC_MDMCFG2_VALUE);    // Modem configuration.
+  WriteConfigurationRegister(CC_MDMCFG1,  CC_MDMCFG1_VALUE);    // Modem configuration.
+  WriteConfigurationRegister(CC_MDMCFG0,  CC_MDMCFG0_VALUE);    // Modem configuration.
+  WriteConfigurationRegister(CC_CHANNR,   CC_CHANNR_VALUE);     // Channel number.
+  WriteConfigurationRegister(CC_DEVIATN,  CC_DEVIATN_VALUE);    // Modem deviation setting (when FSK modulation is enabled).
+  WriteConfigurationRegister(CC_FREND1,   CC_FREND1_VALUE);     // Front end RX configuration.
+  WriteConfigurationRegister(CC_FREND0,   CC_FREND0_VALUE);     // Front end RX configuration.
+  WriteConfigurationRegister(CC_MCSM0,    CC_MCSM0_VALUE);      // Main Radio Control State Machine configuration.
+  WriteConfigurationRegister(CC_FOCCFG,   CC_FOCCFG_VALUE);     // Frequency Offset Compensation Configuration.
+  WriteConfigurationRegister(CC_BSCFG,    CC_BSCFG_VALUE);      // Bit synchronization Configuration.
+  WriteConfigurationRegister(CC_AGCCTRL2, CC_AGCCTRL2_VALUE);   // AGC control.
+  WriteConfigurationRegister(CC_AGCCTRL1, CC_AGCCTRL1_VALUE);   // AGC control.
+  WriteConfigurationRegister(CC_AGCCTRL0, CC_AGCCTRL0_VALUE);   // AGC control.
+  WriteConfigurationRegister(CC_FSCAL3,   CC_FSCAL3_VALUE);     // Frequency synthesizer calibration.
+  WriteConfigurationRegister(CC_FSCAL2,   CC_FSCAL2_VALUE);     // Frequency synthesizer calibration.
+  WriteConfigurationRegister(CC_FSCAL1,   CC_FSCAL1_VALUE);     // Frequency synthesizer calibration.
+  WriteConfigurationRegister(CC_FSCAL0,   CC_FSCAL0_VALUE);     // Frequency synthesizer calibration.
+  WriteConfigurationRegister(CC_TEST2,    CC_TEST2_VALUE);      // Various test settings.
+  WriteConfigurationRegister(CC_TEST1,    CC_TEST1_VALUE);      // Various test settings.
+  WriteConfigurationRegister(CC_TEST0,    CC_TEST0_VALUE);      // Various test settings.
+  WriteConfigurationRegister(CC_FIFOTHR,  CC_FIFOTHR_VALUE);    // fifo threshold
+  WriteConfigurationRegister(CC_IOCFG2,   CC_IOCFG2_VALUE);     // GDO2 output pin configuration.
+  WriteConfigurationRegister(CC_IOCFG0,   CC_IOCFG0_VALUE);     // GDO0 output pin configuration.
+  WriteConfigurationRegister(CC_PKTCTRL1, CC_PKTCTRL1_VALUE);   // Packet automation control.
+  WriteConfigurationRegister(CC_PKTCTRL0, CC_PKTCTRL0_VALUE);   // Packet automation control.
 
-  WriteRegister(CC_PATABLE, CC_Pwr0dBm);
+  WriteConfigurationRegister(CC_PATABLE, CC_Pwr0dBm);
 
-  WriteRegister(CC_MCSM2, CC_MCSM2_VALUE);
-  WriteRegister(CC_MCSM1, CC_MCSM1_VALUE);
+  WriteConfigurationRegister(CC_MCSM2, CC_MCSM2_VALUE);
+  WriteConfigurationRegister(CC_MCSM1, CC_MCSM1_VALUE);
 }
