@@ -59,56 +59,31 @@ uint8_t Cc1101::ReadRegister(uint8_t reg, uint8_t* status) {
   return rx[1];
 }
 
-uint8_t Cc1101::ReadOneFifo() {
-  uint8_t tx[] = {CC_FIFO | CC_READ_FLAG, 0x00};
-  uint8_t rx[] = {137, 137};
-  APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi_, tx, 2, rx, 2));
-  //NRF_LOG_INFO("ReadRegister: status = %d", rx[0]);
-  return rx[1];
-}
-
 bool Cc1101::ReadFifo(RadioPacket* result) {
-  for (int i = 0; i < 100; ++i) {
-    NRF_LOG_FLUSH();
-    uint8_t status;
+  const int max_iterations = 100;
+  for (int i = 0; i < max_iterations; ++i) {
+    uint8_t status = 0;
     uint8_t b = ReadRegister(CC_PKTSTATUS, &status);
-    //NRF_LOG_ERROR("PKTSTATUS = %d", b);
-    if (b & 0x80) {
-      NRF_LOG_ERROR("PKTSTATUS = %u, status byte = %u", b, status);
+    if ((b & 0x80) && ((status & 0x0F) == (sizeof(RadioPacket) + 2))) {
+      NRF_LOG_INFO("PKTSTATUS = %u, status byte = %u", b, status);
       break;
     }
-    if (i == 99) {
-      //NRF_LOG_ERROR("CRC doesn't match!");
+    if (i == max_iterations - 1) {
       return false;
     }
+    
+    // TODO(aeremin) We should wait for GD0 interrupt here instead of busy
+    // waiting (and sleep inbetween).
+    nrf_delay_ms(10);
   }
   
-  // TODO(aeremin) This is hack. Understand what we should wait for
-  // here and remove.
-  nrf_delay_ms(10);
+  uint8_t tx = CC_FIFO | CC_READ_FLAG | CC_BURST_FLAG;
+  uint8_t rx[sizeof(RadioPacket) + 3];
+  APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi_, &tx, 1, rx, sizeof(RadioPacket) + 3));
 
-  uint8_t tx_single = CC_FIFO | CC_READ_FLAG | CC_BURST_FLAG;
-  uint8_t tx[14];
-  for (int i = 0; i < 14; ++i) {
-    tx[i] = CC_FIFO | CC_READ_FLAG; // | CC_BURST_FLAG;
-  }
-  //tx[0] = CC_FIFO | CC_READ_FLAG | CC_BURST_FLAG;
-
-  uint8_t rx[14];
-  for (int i = 0; i < 13; ++i) {
-    //APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi, tx + i, 1, rx + i, 1));
-    //tx[i] = 0; //CC_FIFO | CC_READ_FLAG | CC_BURST_FLAG;
-    rx[i] = ReadOneFifo();
-  }
-  //APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi, &tx_single, 1, rx, 14));
   RadioPacket PktRx;
   memcpy(&PktRx, rx + 1, sizeof(RadioPacket));
-  for (int i = 0; i < 14; ++i) {
-    //NRF_LOG_INFO("rx[%d] = %u", i, rx[i]);
-  }
-  NRF_LOG_INFO("--> : From %u; To: %u; TrrID: %u; PktID: %u; Cmd: %u", PktRx.From, PktRx.To, PktRx.TransmitterID, PktRx.PktID, PktRx.Cmd);
-  //NRF_LOG_INFO("sizeof = %u", sizeof(struct rPkt_t));
-
+  NRF_LOG_INFO("From %u; To: %u; TrrID: %u; PktID: %u; Cmd: %u", PktRx.From, PktRx.To, PktRx.TransmitterID, PktRx.PktID, PktRx.Cmd);
   return true;
 }
 
