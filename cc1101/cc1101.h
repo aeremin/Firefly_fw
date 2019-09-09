@@ -42,7 +42,10 @@ class Cc1101 {
   // If statuses is provided (must be a 2-byte array), status bytes will be written into it.
   void WriteConfigurationRegister(uint8_t reg, uint8_t value, uint8_t* statuses = nullptr);
 
-  uint8_t ReadRegister(uint8_t ARegAddr, uint8_t* status);
+  // Reads a configuration or status register.
+  // If status is provided, status byte will be written into it.
+  uint8_t ReadRegister(uint8_t reg, uint8_t* status = nullptr);
+  
   uint8_t ReadOneFifo();
   bool ReadFifo(RadioPacket* result);
   void RfConfig();
