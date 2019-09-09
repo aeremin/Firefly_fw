@@ -30,7 +30,12 @@ class Cc1101 {
   bool Receive(RadioPacket* result);
 
  private:
-  void WriteStrobe(uint8_t v);
+  // Sends a single-byte instruction to the CC1101.
+  // See documentation of instructions in datasheet, p.32, 
+  // 10.4 Command Strobes
+  // If status is provided, status byte will be written into it.
+  void WriteStrobe(uint8_t instruction, uint8_t* status = nullptr);
+
   uint8_t WriteRegister(uint8_t k, uint8_t v);
   uint8_t ReadRegister(uint8_t ARegAddr, uint8_t* status);
   uint8_t ReadOneFifo();

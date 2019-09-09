@@ -42,10 +42,8 @@ void Cc1101::Init() {
   SetChannel(0);
 }
 
-void Cc1101::WriteStrobe(uint8_t v) {
-  uint8_t status = 0;
-  APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi_, &v, 1, &status, 1));
-  //NRF_LOG_INFO("WriteStrobe: status = %d", status);
+void Cc1101::WriteStrobe(uint8_t instruction, uint8_t* status) {
+  APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi_, &instruction, 1, status, (status ? 1 : 0)));
 }
 
 uint8_t Cc1101::WriteRegister(uint8_t k, uint8_t v) {
