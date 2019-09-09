@@ -7,32 +7,32 @@
 #include "cc1101_rf_settings.h"
 
 void Cc1101::Init() {
-    nrf_drv_spi_config_t spi_config = {
-      .sck_pin      = 6,                
-      .mosi_pin     = 8,                
-      .miso_pin     = 7,                
-      .ss_pin       = 5,                
-      .irq_priority = SPI_DEFAULT_CONFIG_IRQ_PRIORITY,         
-      .orc          = 0x00,                                    
-      .frequency    = NRF_DRV_SPI_FREQ_1M,                     
-      .mode         = NRF_DRV_SPI_MODE_0,                      
-      .bit_order    = NRF_DRV_SPI_BIT_ORDER_MSB_FIRST,         
-    };
-    APP_ERROR_CHECK(nrf_drv_spi_init(&spi_, &spi_config, NULL, NULL));
+  nrf_drv_spi_config_t spi_config = {
+      .sck_pin = 6,
+      .mosi_pin = 8,
+      .miso_pin = 7,
+      .ss_pin = 5,
+      .irq_priority = SPI_DEFAULT_CONFIG_IRQ_PRIORITY,
+      .orc = 0x00,
+      .frequency = NRF_DRV_SPI_FREQ_1M,
+      .mode = NRF_DRV_SPI_MODE_0,
+      .bit_order = NRF_DRV_SPI_BIT_ORDER_MSB_FIRST,
+  };
+  APP_ERROR_CHECK(nrf_drv_spi_init(&spi_, &spi_config, NULL, NULL));
 
-    Reset();
-    nrf_delay_ms(20);
+  Reset();
+  nrf_delay_ms(20);
 
-    WriteRegister(CC_PKTLEN, 40);
-    uint8_t b = ReadRegister(CC_PKTLEN, NULL);
-    NRF_LOG_INFO("Read b = %d", b);
+  WriteRegister(CC_PKTLEN, 40);
+  uint8_t b = ReadRegister(CC_PKTLEN, NULL);
+  NRF_LOG_INFO("Read b = %d", b);
 
-    RfConfig();
-    FlushRxFIFO();
+  RfConfig();
+  FlushRxFIFO();
 
-    SetTxPower(CC_PwrMinus20dBm);
-    SetPktSize(sizeof(RadioPacket));
-    SetChannel(0);
+  SetTxPower(CC_PwrMinus20dBm);
+  SetPktSize(sizeof(RadioPacket));
+  SetChannel(0);
 }
 
 void Cc1101::WriteStrobe(uint8_t v) {
@@ -50,7 +50,7 @@ uint8_t Cc1101::WriteRegister(uint8_t k, uint8_t v) {
 }
 
 uint8_t Cc1101::ReadRegister(uint8_t ARegAddr, uint8_t* status) {
-  ARegAddr= ARegAddr | CC_READ_FLAG;
+  ARegAddr = ARegAddr | CC_READ_FLAG;
   uint8_t tx[] = {ARegAddr, 0x00};
   uint8_t rx[] = {137, 137};
   APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi_, tx, 2, rx, 2));
@@ -60,7 +60,7 @@ uint8_t Cc1101::ReadRegister(uint8_t ARegAddr, uint8_t* status) {
 }
 
 uint8_t Cc1101::ReadOneFifo() {
-  uint8_t tx[] = { CC_FIFO | CC_READ_FLAG, 0x00};
+  uint8_t tx[] = {CC_FIFO | CC_READ_FLAG, 0x00};
   uint8_t rx[] = {137, 137};
   APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi_, tx, 2, rx, 2));
   //NRF_LOG_INFO("ReadRegister: status = %d", rx[0]);
@@ -86,10 +86,10 @@ bool Cc1101::ReadFifo(RadioPacket* result) {
   uint8_t tx_single = CC_FIFO | CC_READ_FLAG | CC_BURST_FLAG;
   uint8_t tx[14];
   for (int i = 0; i < 14; ++i) {
-    tx[i] = CC_FIFO | CC_READ_FLAG;// | CC_BURST_FLAG;
+    tx[i] = CC_FIFO | CC_READ_FLAG; // | CC_BURST_FLAG;
   }
   //tx[0] = CC_FIFO | CC_READ_FLAG | CC_BURST_FLAG;
-  
+
   uint8_t rx[14];
   for (int i = 0; i < 13; ++i) {
     //APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi, tx + i, 1, rx + i, 1));
@@ -109,11 +109,11 @@ bool Cc1101::ReadFifo(RadioPacket* result) {
 }
 
 bool Cc1101::Receive(RadioPacket* result) {
-    WriteStrobe(CC_SCAL);
-    FlushRxFIFO();
-    EnterRX();
-    // while (nrf_gpio_pin_read(4)) {}
-    return ReadFifo(result);
+  WriteStrobe(CC_SCAL);
+  FlushRxFIFO();
+  EnterRX();
+  // while (nrf_gpio_pin_read(4)) {}
+  return ReadFifo(result);
 }
 
 void Cc1101::RfConfig() {

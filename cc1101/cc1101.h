@@ -6,24 +6,24 @@
 #include "cc1101defins.h"
 
 struct RadioPacket {
-    uint16_t From;
-    uint16_t To;
-    uint16_t TransmitterID;
-    uint8_t Cmd;
-    uint8_t PktID;
-    int8_t RssiThr;
-    uint8_t Damage;
-    uint8_t Power;
-} __attribute__ ((__packed__));
+  uint16_t From;
+  uint16_t To;
+  uint16_t TransmitterID;
+  uint8_t Cmd;
+  uint8_t PktID;
+  int8_t RssiThr;
+  uint8_t Damage;
+  uint8_t Power;
+} __attribute__((__packed__));
 
 class Cc1101 {
-public:
-  Cc1101(nrf_drv_spi_t spi): spi_(spi) {}
-  
+ public:
+  Cc1101(nrf_drv_spi_t spi) : spi_(spi) {}
+
   void Init();
   bool Receive(RadioPacket* result);
 
-private:
+ private:
   void WriteStrobe(uint8_t v);
   uint8_t WriteRegister(uint8_t k, uint8_t v);
   uint8_t ReadRegister(uint8_t ARegAddr, uint8_t* status);
