@@ -107,5 +107,6 @@
   <configuration
     Name="Debug"
     c_preprocessor_definitions="DEBUG; DEBUG_NRF"
+    gcc_cplusplus_language_standard="gnu++14"
     gcc_optimization_level="None" />
 </solution>
