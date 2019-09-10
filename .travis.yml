@@ -9,3 +9,5 @@ deploy:
   api_key: $GITHUB_OAUTH_TOKEN
   file: nrf52/blank/ses/Output/Debug/Exe/demo.hex
   skip_cleanup: true
+  on:
+    tags: true
