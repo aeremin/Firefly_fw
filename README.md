@@ -11,7 +11,7 @@
   Download and unzip it anywhere (e.g. `C:/Dev/nRF5_SDK_15.3.0_59ac345`), then in SES go to Tools -> Options -> Building -> Global macros
   and set NRF_SDK_PATH to path chosen above (e.g. `NRF_SDK_PATH=C:/Dev/nRF5_SDK_15.3.0_59ac345`).
 
-That should be enough. If needed, more information and links to the additional tools can be in the official
+That should be enough. If needed, more information and links to the additional tools can be found in the official
 Nordic's ["Getting Started"](https://infocenter.nordicsemi.com/topic/ug_gsg_ses/UG/gsg/install_toolchain.html?cp=1_1_0_6).
 
 To open the project in SES, open `nrf52/blank/ses/firefly.emProject` (this is a SES project file).
