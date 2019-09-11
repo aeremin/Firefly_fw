@@ -2,6 +2,7 @@
 #define CC1101_H
 
 #include "nrf_drv_spi.h"
+#include "FreeRTOS.h"
 
 #include "cc1101defins.h"
 

@@ -15,8 +15,8 @@
       arm_simulator_memory_simulation_parameter="RWX 00000000,00100000,FFFFFFFF;RWX 20000000,00010000,CDCDCDCD"
       arm_target_device_name="nRF52832_xxAA"
       arm_target_interface_type="SWD"
-      c_preprocessor_definitions="BOARD_CUSTOM;CONFIG_GPIO_AS_PINRESET;FLOAT_ABI_HARD;INITIALIZE_USER_SECTIONS;NO_VTOR_CONFIG;NRF52;NRF52832_XXAA;NRF52_PAN_74;SWI_DISABLE0;"
-      c_user_include_directories="../../../config;$(NRF_SDK_PATH)/components;$(NRF_SDK_PATH)/components/boards;$(NRF_SDK_PATH)/components/drivers_nrf/nrf_soc_nosd;$(NRF_SDK_PATH)/components/libraries/atomic;$(NRF_SDK_PATH)/components/libraries/balloc;$(NRF_SDK_PATH)/components/libraries/bsp;$(NRF_SDK_PATH)/components/libraries/button;$(NRF_SDK_PATH)/components/libraries/delay;$(NRF_SDK_PATH)/components/libraries/experimental_section_vars;$(NRF_SDK_PATH)/components/libraries/log;$(NRF_SDK_PATH)/components/libraries/log/src;$(NRF_SDK_PATH)/components/libraries/memobj;$(NRF_SDK_PATH)/components/libraries/ringbuf;$(NRF_SDK_PATH)/components/libraries/scheduler;$(NRF_SDK_PATH)/components/libraries/strerror;$(NRF_SDK_PATH)/components/libraries/timer;$(NRF_SDK_PATH)/components/libraries/util;$(NRF_SDK_PATH)/components/toolchain/cmsis/include;../../..;$(NRF_SDK_PATH)/external/fprintf;$(NRF_SDK_PATH)/external/segger_rtt;$(NRF_SDK_PATH)/integration/nrfx;$(NRF_SDK_PATH)/integration/nrfx/legacy;$(NRF_SDK_PATH)/modules/nrfx;$(NRF_SDK_PATH)/modules/nrfx/drivers/include;$(NRF_SDK_PATH)/modules/nrfx/hal;$(NRF_SDK_PATH)/modules/nrfx/mdk;../config;"
+      c_preprocessor_definitions="BOARD_CUSTOM;CONFIG_GPIO_AS_PINRESET;FLOAT_ABI_HARD;INITIALIZE_USER_SECTIONS;NO_VTOR_CONFIG;NRF52;NRF52832_XXAA;NRF52_PAN_74;SWI_DISABLE0;FREERTOS"
+      c_user_include_directories="../../../config;$(NRF_SDK_PATH)/components;$(NRF_SDK_PATH)/components/boards;$(NRF_SDK_PATH)/components/drivers_nrf/nrf_soc_nosd;$(NRF_SDK_PATH)/components/libraries/atomic;$(NRF_SDK_PATH)/components/libraries/balloc;$(NRF_SDK_PATH)/components/libraries/bsp;$(NRF_SDK_PATH)/components/libraries/button;$(NRF_SDK_PATH)/components/libraries/delay;$(NRF_SDK_PATH)/components/libraries/experimental_section_vars;$(NRF_SDK_PATH)/components/libraries/log;$(NRF_SDK_PATH)/components/libraries/log/src;$(NRF_SDK_PATH)/components/libraries/memobj;$(NRF_SDK_PATH)/components/libraries/ringbuf;$(NRF_SDK_PATH)/components/libraries/scheduler;$(NRF_SDK_PATH)/components/libraries/strerror;$(NRF_SDK_PATH)/components/libraries/timer;$(NRF_SDK_PATH)/components/libraries/util;$(NRF_SDK_PATH)/components/toolchain/cmsis/include;../../..;$(NRF_SDK_PATH)/external/fprintf;$(NRF_SDK_PATH)/external/segger_rtt;$(NRF_SDK_PATH)/integration/nrfx;$(NRF_SDK_PATH)/integration/nrfx/legacy;$(NRF_SDK_PATH)/modules/nrfx;$(NRF_SDK_PATH)/modules/nrfx/drivers/include;$(NRF_SDK_PATH)/modules/nrfx/hal;$(NRF_SDK_PATH)/modules/nrfx/mdk;../config;$(NRF_SDK_PATH)/external/freertos/config;$(NRF_SDK_PATH)/external/freertos/portable/CMSIS/nrf52;$(NRF_SDK_PATH)/external/freertos/portable/GCC/nrf52;$(NRF_SDK_PATH)/external/freertos/source/include;"
       debug_register_definition_file="$(NRF_SDK_PATH)/modules/nrfx/mdk/nrf52.svd"
       debug_start_from_entry_point_symbol="No"
       debug_target_connection="J-Link"
@@ -53,7 +53,7 @@
       <file file_name="$(NRF_SDK_PATH)/components/libraries/util/app_error_handler_gcc.c" />
       <file file_name="$(NRF_SDK_PATH)/components/libraries/util/app_error_weak.c" />
       <file file_name="$(NRF_SDK_PATH)/components/libraries/scheduler/app_scheduler.c" />
-      <file file_name="$(NRF_SDK_PATH)/components/libraries/timer/app_timer.c" />
+      <file file_name="$(NRF_SDK_PATH)/components/libraries/timer/app_timer_freertos.c" />
       <file file_name="$(NRF_SDK_PATH)/components/libraries/util/app_util_platform.c" />
       <file file_name="$(NRF_SDK_PATH)/components/libraries/util/nrf_assert.c" />
       <file file_name="$(NRF_SDK_PATH)/components/libraries/atomic/nrf_atomic.c" />
@@ -76,6 +76,19 @@
       <file file_name="$(NRF_SDK_PATH)/modules/nrfx/drivers/src/nrfx_uart.c" />
       <file file_name="$(NRF_SDK_PATH)/modules/nrfx/drivers/src/nrfx_clock.c" />
       <file file_name="$(NRF_SDK_PATH)/modules/nrfx/drivers/src/nrfx_uarte.c" />
+    </folder>
+    <folder Name="FreeRTOS">
+      <file file_name="$(NRF_SDK_PATH)/external/freertos/source/croutine.c" />
+      <file file_name="$(NRF_SDK_PATH)/external/freertos/source/event_groups.c" />
+      <file file_name="$(NRF_SDK_PATH)/external/freertos/source/portable/MemMang/heap_1.c" />
+      <file file_name="$(NRF_SDK_PATH)/external/freertos/source/list.c" />
+      <file file_name="$(NRF_SDK_PATH)/external/freertos/portable/GCC/nrf52/port.c" />
+      <file file_name="$(NRF_SDK_PATH)/external/freertos/portable/CMSIS/nrf52/port_cmsis.c" />
+      <file file_name="$(NRF_SDK_PATH)/external/freertos/portable/CMSIS/nrf52/port_cmsis_systick.c" />
+      <file file_name="$(NRF_SDK_PATH)/external/freertos/source/queue.c" />
+      <file file_name="$(NRF_SDK_PATH)/external/freertos/source/stream_buffer.c" />
+      <file file_name="$(NRF_SDK_PATH)/external/freertos/source/tasks.c" />
+      <file file_name="$(NRF_SDK_PATH)/external/freertos/source/timers.c" />
     </folder>
     <folder Name="Board Support">
       <file file_name="$(NRF_SDK_PATH)/components/libraries/bsp/bsp.c" />
