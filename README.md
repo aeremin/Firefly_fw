@@ -14,6 +14,8 @@
 That should be enough. If needed, more information and links to the additional tools can be in the official
 Nordic's ["Getting Started"](https://infocenter.nordicsemi.com/topic/ug_gsg_ses/UG/gsg/install_toolchain.html?cp=1_1_0_6).
 
+To open the project in SES, open `nrf52/blank/ses/firefly.emProject` (this is a SES project file).
+
 # Hardware setup
 Requirements:
 * One of [nRF devkits](https://www.nordicsemi.com/Software-and-Tools/Development-Kits).
