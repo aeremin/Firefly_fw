@@ -46,7 +46,6 @@ class Cc1101 {
   // If status is provided, status byte will be written into it.
   uint8_t ReadRegister(uint8_t reg, uint8_t* status = nullptr);
   
-  uint8_t ReadOneFifo();
   bool ReadFifo(RadioPacket* result);
   void RfConfig();
 
