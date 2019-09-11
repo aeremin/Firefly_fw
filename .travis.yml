@@ -3,6 +3,7 @@ services:
 
 script:
   - docker run -v ${PWD}:/segger/firefly alexeyeremin/nrf-sdk-15-3-segger /segger/ses/bin/emBuild firefly/nrf52/blank/ses/firefly.emProject -config 'Debug' -D 'NRF_SDK_PATH=/segger/nRF5_SDK_15.3.0'
+  - docker run -v ${PWD}:/segger/firefly alexeyeremin/nrf-sdk-15-3-segger /segger/ses/bin/emBuild firefly/nrf52/blank/ses/firefly.emProject -config 'Release' -D 'NRF_SDK_PATH=/segger/nRF5_SDK_15.3.0'
 
 deploy:
   provider: releases
