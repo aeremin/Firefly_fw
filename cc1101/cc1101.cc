@@ -1,10 +1,31 @@
 #include "cc1101.h"
 
 #include "nrf_delay.h"
+#include "nrf_drv_gpiote.h"
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 
+#include "task.h"
+
 #include "cc1101_rf_settings.h"
+
+namespace {
+
+// See https://www.freertos.org/RTOS_Task_Notification_As_Binary_Semaphore.html
+// for an explanation of approach we use here.
+TaskHandle_t g_task_to_nofify = 0;
+
+void Gd0Handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
+{
+  BaseType_t higher_priority_task_woken = pdFALSE;
+  if (g_task_to_nofify) {
+    vTaskNotifyGiveFromISR(g_task_to_nofify, &higher_priority_task_woken);
+    portYIELD_FROM_ISR(higher_priority_task_woken);
+  }
+}
+
+}
+
 
 void Cc1101::Init() {
   nrf_drv_spi_config_t spi_config = {
@@ -40,6 +61,15 @@ void Cc1101::Init() {
   SetTxPower(CC_PwrMinus20dBm);
   SetPktSize(sizeof(RadioPacket));
   SetChannel(0);
+
+  g_task_to_nofify = xTaskGetCurrentTaskHandle();
+  nrf_drv_gpiote_in_config_t in_config;
+  in_config.is_watcher = false;
+  in_config.hi_accuracy = true;
+  in_config.pull = NRF_GPIO_PIN_PULLDOWN;
+  in_config.sense = NRF_GPIOTE_POLARITY_HITOLO;
+  APP_ERROR_CHECK(nrf_drv_gpiote_in_init(4, &in_config, Gd0Handler));
+  nrf_drv_gpiote_in_event_enable(4, true);
 }
 
 void Cc1101::WriteStrobe(uint8_t instruction, uint8_t* status) {
@@ -60,23 +90,13 @@ uint8_t Cc1101::ReadRegister(uint8_t reg, uint8_t* status) {
 }
 
 bool Cc1101::ReadFifo(RadioPacket* result) {
-  const int max_iterations = 100;
-  for (int i = 0; i < max_iterations; ++i) {
-    uint8_t status = 0;
-    uint8_t b = ReadRegister(CC_PKTSTATUS, &status);
-    if ((b & 0x80) && ((status & 0x0F) == (sizeof(RadioPacket) + 2))) {
-      NRF_LOG_INFO("PKTSTATUS = %u, status byte = %u", b, status);
-      break;
-    }
-    if (i == max_iterations - 1) {
-      return false;
-    }
-    
-    // TODO(aeremin) We should wait for GD0 interrupt here instead of busy
-    // waiting (and sleep inbetween).
-    nrf_delay_ms(10);
+  uint8_t status = 0;
+  uint8_t b = ReadRegister(CC_PKTSTATUS, &status);
+  if (!(b & 0x80)) {
+    NRF_LOG_INFO("PKTSTATUS = %u, status byte = %u", b, status);
+    return false;
   }
-  
+
   uint8_t tx = CC_FIFO | CC_READ_FLAG | CC_BURST_FLAG;
   uint8_t rx[sizeof(RadioPacket) + 3];
   APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi_, &tx, 1, rx, sizeof(RadioPacket) + 3));
@@ -87,12 +107,17 @@ bool Cc1101::ReadFifo(RadioPacket* result) {
   return true;
 }
 
-bool Cc1101::Receive(RadioPacket* result) {
+bool Cc1101::Receive(uint32_t timeout_ms, RadioPacket* result) {
   WriteStrobe(CC_SCAL);
   FlushRxFIFO();
   EnterRX();
-  // while (nrf_gpio_pin_read(4)) {}
-  return ReadFifo(result);
+
+  if(ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(timeout_ms))) {
+    return ReadFifo(result);
+  } else {
+    EnterIdle();
+    return false;
+  } 
 }
 
 void Cc1101::RfConfig() {

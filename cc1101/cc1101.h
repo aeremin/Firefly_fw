@@ -27,8 +27,7 @@ class Cc1101 {
   // TODO(aeremin) Return bool (false if failed to init)
   void Init();
 
-  // TODO(aeremin) Support setting an explicit timeout
-  bool Receive(RadioPacket* result);
+  bool Receive(uint32_t timeout_ms, RadioPacket* result);
 
  private:
   // Sends a single-byte instruction to the CC1101.
@@ -53,6 +52,7 @@ class Cc1101 {
   void Reset()       { WriteStrobe(CC_SRES); }
   void EnterTX()     { WriteStrobe(CC_STX);  }
   void EnterRX()     { WriteStrobe(CC_SRX);  }
+  void EnterIdle()   { WriteStrobe(CC_SIDLE); }
   void FlushRxFIFO() { WriteStrobe(CC_SFRX); }
   void SetTxPower(uint8_t APwr)  { WriteConfigurationRegister(CC_PATABLE, APwr); }
   void SetPktSize(uint8_t ASize) { WriteConfigurationRegister(CC_PKTLEN, ASize); }
