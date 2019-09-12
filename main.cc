@@ -59,16 +59,32 @@ static void OuchTask(void*) {
   }  
 }
 
+const bool g_transmit = true;
+const bool g_receive = false;
+
 static TaskHandle_t g_radio_task_handle = 0;
 static void RadioTask(void*) {
   cc1101.Init();
+  RadioPacket r;
+  r.Cmd = 3;
+  r.To = 0;
+  r.From = 1057;
+  r.TransmitterID = 1057;
+  r.Beacon.RssiThr = -124;
+  r.Beacon.Damage = 2;
+  r.Beacon.Power = 91;
   while (true) {
-    RadioPacket r;
-    if (cc1101.Receive(360, &r)) {
-      accumulator.Cnt++;
-      accumulator.Summ += 80 + 132;
-      accumulator.RssiThr = r.RssiThr;
-      accumulator.Damage = r.Damage + 1;
+    if (g_transmit) {
+      cc1101.Transmit(r);
+      nrf_delay_ms(100);
+    }
+    if (g_receive) {
+      if (cc1101.Receive(360, &r)) {
+        accumulator.Cnt++;
+        accumulator.Summ += 80 + 132;
+        accumulator.RssiThr = r.Beacon.RssiThr;
+        accumulator.Damage = r.Beacon.Damage + 1;
+      }
     }
     NRF_LOG_FLUSH();
   }  

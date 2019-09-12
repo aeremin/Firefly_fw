@@ -104,11 +104,12 @@ bool Cc1101::ReadFifo(RadioPacket* result) {
   RadioPacket PktRx;
   memcpy(&PktRx, rx + 1, sizeof(RadioPacket));
   NRF_LOG_INFO("From %u; To: %u; TrrID: %u; PktID: %u; Cmd: %u", PktRx.From, PktRx.To, PktRx.TransmitterID, PktRx.PktID, PktRx.Cmd);
+  NRF_LOG_INFO("Thr: %d, Dmg: %u, Pwr: %u", PktRx.Beacon.RssiThr, PktRx.Beacon.Damage, PktRx.Beacon.Power);
   return true;
 }
 
 bool Cc1101::Receive(uint32_t timeout_ms, RadioPacket* result) {
-  WriteStrobe(CC_SCAL);
+  Recalibrate();
   FlushRxFIFO();
   EnterRX();
 
@@ -118,6 +119,24 @@ bool Cc1101::Receive(uint32_t timeout_ms, RadioPacket* result) {
     EnterIdle();
     return false;
   } 
+}
+
+void Cc1101::Transmit(const RadioPacket& packet) {
+  Recalibrate();
+  EnterTX();
+  WriteTX(packet);
+  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+}
+
+void Cc1101::WriteTX(const RadioPacket& packet) {
+  uint8_t tx[sizeof(RadioPacket) + 1] = { CC_FIFO | CC_WRITE_FLAG | CC_BURST_FLAG };
+  memcpy(tx + 1, &packet, sizeof(RadioPacket));
+  APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi_, tx, sizeof(RadioPacket) + 1, nullptr, 0));
+}
+
+void Cc1101::Recalibrate() {
+  EnterIdle();
+  WriteStrobe(CC_SCAL);
 }
 
 void Cc1101::RfConfig() {

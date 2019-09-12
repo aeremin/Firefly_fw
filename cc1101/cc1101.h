@@ -7,15 +7,39 @@
 #include "cc1101defins.h"
 
 struct RadioPacket {
-  uint16_t From;
-  uint16_t To;
-  uint16_t TransmitterID;
-  uint8_t Cmd;
-  uint8_t PktID;
-  int8_t RssiThr;
-  uint8_t Damage;
-  uint8_t Power;
-} __attribute__((__packed__));
+    uint16_t From;  // 2
+    uint16_t To;    // 2
+    uint16_t TransmitterID; // 2
+    uint8_t Cmd; // 1
+    uint8_t PktID; // 1
+    union {
+        struct {
+            uint16_t MaxLvlID;
+            uint8_t Reply;
+        } __attribute__ ((__packed__)) Pong; // 3
+
+        struct {
+            int8_t RssiThr;
+            uint8_t Damage;
+            uint8_t Power;
+        } __attribute__ ((__packed__)) Beacon; // 3
+
+        struct {
+            uint8_t Power;
+            int8_t RssiThr;
+            uint8_t Damage;
+        } __attribute__ ((__packed__)) LustraParams; // 3
+
+        struct {
+            uint8_t ParamID;
+            uint16_t Value;
+        } __attribute__ ((__packed__)) LocketParam; // 3
+
+        struct {
+            int8_t RssiThr;
+        } __attribute__ ((__packed__)) Die; // 1
+    } __attribute__ ((__packed__)); // union
+} __attribute__ ((__packed__));
 
 // Representation of CC1101 radio tranceiver chip.
 // See datasheet here: http://www.ti.com/lit/ds/symlink/cc1101.pdf
@@ -28,6 +52,8 @@ class Cc1101 {
   void Init();
 
   bool Receive(uint32_t timeout_ms, RadioPacket* result);
+
+  void Transmit(const RadioPacket& packet);
 
  private:
   // Sends a single-byte instruction to the CC1101.
@@ -47,6 +73,8 @@ class Cc1101 {
   uint8_t ReadRegister(uint8_t reg, uint8_t* status = nullptr);
   
   bool ReadFifo(RadioPacket* result);
+  void WriteTX(const RadioPacket& packet);
+
   void RfConfig();
 
   void Reset()       { WriteStrobe(CC_SRES); }
@@ -57,6 +85,8 @@ class Cc1101 {
   void SetTxPower(uint8_t APwr)  { WriteConfigurationRegister(CC_PATABLE, APwr); }
   void SetPktSize(uint8_t ASize) { WriteConfigurationRegister(CC_PKTLEN, ASize); }
   void SetChannel(uint8_t AChannel) { WriteConfigurationRegister(CC_CHANNR, AChannel); }
+
+  void Recalibrate();
 
   const nrf_drv_spi_t spi_;
 };
