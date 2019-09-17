@@ -2,7 +2,6 @@ PROJECT_NAME     := spi_pca10040
 TARGETS          := nrf52832_xxaa
 OUTPUT_DIRECTORY := _build
 
-SDK_ROOT := ../../../../../..
 PROJ_DIR := ../../..
 
 $(OUTPUT_DIRECTORY)/nrf52832_xxaa.out: \
@@ -10,75 +9,93 @@ $(OUTPUT_DIRECTORY)/nrf52832_xxaa.out: \
 
 # Source files common to all targets
 SRC_FILES += \
-  $(SDK_ROOT)/modules/nrfx/mdk/gcc_startup_nrf52.S \
-  $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_rtt.c \
-  $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_serial.c \
-  $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_uart.c \
-  $(SDK_ROOT)/components/libraries/log/src/nrf_log_default_backends.c \
-  $(SDK_ROOT)/components/libraries/log/src/nrf_log_frontend.c \
-  $(SDK_ROOT)/components/libraries/log/src/nrf_log_str_formatter.c \
-  $(SDK_ROOT)/components/boards/boards.c \
-  $(SDK_ROOT)/components/libraries/button/app_button.c \
-  $(SDK_ROOT)/components/libraries/util/app_error.c \
-  $(SDK_ROOT)/components/libraries/util/app_error_handler_gcc.c \
-  $(SDK_ROOT)/components/libraries/util/app_error_weak.c \
-  $(SDK_ROOT)/components/libraries/scheduler/app_scheduler.c \
-  $(SDK_ROOT)/components/libraries/timer/app_timer.c \
-  $(SDK_ROOT)/components/libraries/util/app_util_platform.c \
-  $(SDK_ROOT)/components/libraries/util/nrf_assert.c \
-  $(SDK_ROOT)/components/libraries/atomic/nrf_atomic.c \
-  $(SDK_ROOT)/components/libraries/balloc/nrf_balloc.c \
-  $(SDK_ROOT)/external/fprintf/nrf_fprintf.c \
-  $(SDK_ROOT)/external/fprintf/nrf_fprintf_format.c \
-  $(SDK_ROOT)/components/libraries/memobj/nrf_memobj.c \
-  $(SDK_ROOT)/components/libraries/ringbuf/nrf_ringbuf.c \
-  $(SDK_ROOT)/components/libraries/strerror/nrf_strerror.c \
-  $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_spi.c \
-  $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_uart.c \
-  $(SDK_ROOT)/modules/nrfx/soc/nrfx_atomic.c \
-  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_gpiote.c \
-  $(SDK_ROOT)/modules/nrfx/drivers/src/prs/nrfx_prs.c \
-  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_spi.c \
-  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_spim.c \
-  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_uart.c \
-  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_uarte.c \
-  $(SDK_ROOT)/components/libraries/bsp/bsp.c \
-  $(PROJ_DIR)/main.c \
-  $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT.c \
-  $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_Syscalls_GCC.c \
-  $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_printf.c \
-  $(SDK_ROOT)/modules/nrfx/mdk/system_nrf52.c \
+  $(NRF_SDK_PATH)/modules/nrfx/mdk/gcc_startup_nrf52.S \
+  $(NRF_SDK_PATH)/components/libraries/log/src/nrf_log_backend_rtt.c \
+  $(NRF_SDK_PATH)/components/libraries/log/src/nrf_log_backend_serial.c \
+  $(NRF_SDK_PATH)/components/libraries/log/src/nrf_log_backend_uart.c \
+  $(NRF_SDK_PATH)/components/libraries/log/src/nrf_log_default_backends.c \
+  $(NRF_SDK_PATH)/components/libraries/log/src/nrf_log_frontend.c \
+  $(NRF_SDK_PATH)/components/libraries/log/src/nrf_log_str_formatter.c \
+  $(NRF_SDK_PATH)/components/boards/boards.c \
+  $(NRF_SDK_PATH)/components/libraries/button/app_button.c \
+  $(NRF_SDK_PATH)/components/libraries/util/app_error.c \
+  $(NRF_SDK_PATH)/components/libraries/util/app_error_handler_gcc.c \
+  $(NRF_SDK_PATH)/components/libraries/util/app_error_weak.c \
+  $(NRF_SDK_PATH)/components/libraries/scheduler/app_scheduler.c \
+  $(NRF_SDK_PATH)/components/libraries/timer/app_timer_freertos.c \
+  $(NRF_SDK_PATH)/components/libraries/util/app_util_platform.c \
+  $(NRF_SDK_PATH)/components/libraries/util/nrf_assert.c \
+  $(NRF_SDK_PATH)/components/libraries/atomic/nrf_atomic.c \
+  $(NRF_SDK_PATH)/components/libraries/balloc/nrf_balloc.c \
+  $(NRF_SDK_PATH)/external/fprintf/nrf_fprintf.c \
+  $(NRF_SDK_PATH)/external/fprintf/nrf_fprintf_format.c \
+  $(NRF_SDK_PATH)/components/libraries/memobj/nrf_memobj.c \
+  $(NRF_SDK_PATH)/components/libraries/ringbuf/nrf_ringbuf.c \
+  $(NRF_SDK_PATH)/components/libraries/strerror/nrf_strerror.c \
+  $(NRF_SDK_PATH)/integration/nrfx/legacy/nrf_drv_spi.c \
+  $(NRF_SDK_PATH)/integration/nrfx/legacy/nrf_drv_uart.c \
+  $(NRF_SDK_PATH)/integration/nrfx/legacy/nrf_drv_clock.c \
+  $(NRF_SDK_PATH)/modules/nrfx/soc/nrfx_atomic.c \
+  $(NRF_SDK_PATH)/modules/nrfx/drivers/src/nrfx_gpiote.c \
+  $(NRF_SDK_PATH)/modules/nrfx/drivers/src/prs/nrfx_prs.c \
+  $(NRF_SDK_PATH)/modules/nrfx/drivers/src/nrfx_spi.c \
+  $(NRF_SDK_PATH)/modules/nrfx/drivers/src/nrfx_spim.c \
+  $(NRF_SDK_PATH)/modules/nrfx/drivers/src/nrfx_uart.c \
+  $(NRF_SDK_PATH)/modules/nrfx/drivers/src/nrfx_clock.c \
+  $(NRF_SDK_PATH)/modules/nrfx/drivers/src/nrfx_uarte.c \
+  $(NRF_SDK_PATH)/components/libraries/bsp/bsp.c \
+  $(PROJ_DIR)/main.cpp \
+  $(PROJ_DIR)/cc1101/cc1101.cpp \
+  $(NRF_SDK_PATH)/external/segger_rtt/SEGGER_RTT.c \
+  $(NRF_SDK_PATH)/external/segger_rtt/SEGGER_RTT_Syscalls_GCC.c \
+  $(NRF_SDK_PATH)/external/segger_rtt/SEGGER_RTT_printf.c \
+  $(NRF_SDK_PATH)/modules/nrfx/mdk/system_nrf52.c \
+  $(NRF_SDK_PATH)/external/freertos/source/croutine.c \
+  $(NRF_SDK_PATH)/external/freertos/source/event_groups.c \
+  $(NRF_SDK_PATH)/external/freertos/source/portable/MemMang/heap_1.c \
+  $(NRF_SDK_PATH)/external/freertos/source/list.c \
+  $(NRF_SDK_PATH)/external/freertos/portable/GCC/nrf52/port.c \
+  $(NRF_SDK_PATH)/external/freertos/portable/CMSIS/nrf52/port_cmsis.c \
+  $(NRF_SDK_PATH)/external/freertos/portable/CMSIS/nrf52/port_cmsis_systick.c \
+  $(NRF_SDK_PATH)/external/freertos/source/queue.c \
+  $(NRF_SDK_PATH)/external/freertos/source/stream_buffer.c \
+  $(NRF_SDK_PATH)/external/freertos/source/tasks.c \
+  $(NRF_SDK_PATH)/external/freertos/source/timers.c \
 
 # Include folders common to all targets
 INC_FOLDERS += \
-  $(SDK_ROOT)/components \
-  $(SDK_ROOT)/modules/nrfx/mdk \
-  $(SDK_ROOT)/components/libraries/scheduler \
+  $(NRF_SDK_PATH)/components \
+  $(NRF_SDK_PATH)/modules/nrfx/mdk \
+  $(NRF_SDK_PATH)/components/libraries/scheduler \
   $(PROJ_DIR) \
-  $(SDK_ROOT)/components/libraries/timer \
-  $(SDK_ROOT)/components/libraries/strerror \
-  $(SDK_ROOT)/components/toolchain/cmsis/include \
-  $(SDK_ROOT)/components/libraries/util \
+  $(NRF_SDK_PATH)/components/libraries/timer \
+  $(NRF_SDK_PATH)/components/libraries/strerror \
+  $(NRF_SDK_PATH)/components/toolchain/cmsis/include \
+  $(NRF_SDK_PATH)/components/libraries/util \
   ../config \
-  $(SDK_ROOT)/components/libraries/balloc \
-  $(SDK_ROOT)/components/libraries/ringbuf \
-  $(SDK_ROOT)/modules/nrfx/hal \
-  $(SDK_ROOT)/components/libraries/bsp \
-  $(SDK_ROOT)/components/libraries/log \
-  $(SDK_ROOT)/components/libraries/button \
-  $(SDK_ROOT)/modules/nrfx \
-  $(SDK_ROOT)/components/libraries/experimental_section_vars \
-  $(SDK_ROOT)/integration/nrfx/legacy \
-  $(SDK_ROOT)/components/libraries/delay \
-  $(SDK_ROOT)/integration/nrfx \
-  $(SDK_ROOT)/components/drivers_nrf/nrf_soc_nosd \
-  $(SDK_ROOT)/external/segger_rtt \
-  $(SDK_ROOT)/components/boards \
-  $(SDK_ROOT)/components/libraries/memobj \
-  $(SDK_ROOT)/modules/nrfx/drivers/include \
-  $(SDK_ROOT)/components/libraries/log/src \
-  $(SDK_ROOT)/external/fprintf \
-  $(SDK_ROOT)/components/libraries/atomic \
+  $(NRF_SDK_PATH)/components/libraries/balloc \
+  $(NRF_SDK_PATH)/components/libraries/ringbuf \
+  $(NRF_SDK_PATH)/modules/nrfx/hal \
+  $(NRF_SDK_PATH)/components/libraries/bsp \
+  $(NRF_SDK_PATH)/components/libraries/log \
+  $(NRF_SDK_PATH)/components/libraries/button \
+  $(NRF_SDK_PATH)/modules/nrfx \
+  $(NRF_SDK_PATH)/components/libraries/experimental_section_vars \
+  $(NRF_SDK_PATH)/integration/nrfx/legacy \
+  $(NRF_SDK_PATH)/components/libraries/delay \
+  $(NRF_SDK_PATH)/integration/nrfx \
+  $(NRF_SDK_PATH)/components/drivers_nrf/nrf_soc_nosd \
+  $(NRF_SDK_PATH)/external/segger_rtt \
+  $(NRF_SDK_PATH)/components/boards \
+  $(NRF_SDK_PATH)/components/libraries/memobj \
+  $(NRF_SDK_PATH)/modules/nrfx/drivers/include \
+  $(NRF_SDK_PATH)/components/libraries/log/src \
+  $(NRF_SDK_PATH)/external/fprintf \
+  $(NRF_SDK_PATH)/components/libraries/atomic \
+  $(NRF_SDK_PATH)/external/freertos/config \
+  $(NRF_SDK_PATH)/external/freertos/portable/CMSIS/nrf52 \
+  $(NRF_SDK_PATH)/external/freertos/portable/GCC/nrf52 \
+  $(NRF_SDK_PATH)/external/freertos/source/include \
 
 # Libraries common to all targets
 LIB_FILES += \
@@ -97,9 +114,10 @@ CFLAGS += -DNRF52
 CFLAGS += -DNRF52832_XXAA
 CFLAGS += -DNRF52_PAN_74
 CFLAGS += -DSWI_DISABLE0
+CFLAGS += -DFREERTOS
 CFLAGS += -mcpu=cortex-m4
 CFLAGS += -mthumb -mabi=aapcs
-CFLAGS += -Wall -Werror
+CFLAGS += -Wall
 CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 # keep every function in a separate section, this allows linker to discard unused ones
 CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
@@ -107,6 +125,7 @@ CFLAGS += -fno-builtin -fshort-enums
 
 # C++ flags common to all targets
 CXXFLAGS += $(OPT)
+CXXFLAGS += -std=gnu++14
 
 # Assembler flags common to all targets
 ASMFLAGS += -g3
@@ -123,7 +142,7 @@ ASMFLAGS += -DSWI_DISABLE0
 
 # Linker flags
 LDFLAGS += $(OPT)
-LDFLAGS += -mthumb -mabi=aapcs -L$(SDK_ROOT)/modules/nrfx/mdk -T$(LINKER_SCRIPT)
+LDFLAGS += -mthumb -mabi=aapcs -L$(NRF_SDK_PATH)/modules/nrfx/mdk -T$(LINKER_SCRIPT)
 LDFLAGS += -mcpu=cortex-m4
 LDFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 # let linker dump unused sections
@@ -153,7 +172,7 @@ help:
 	@echo		sdk_config - starting external tool for editing sdk_config.h
 	@echo		flash      - flashing binary
 
-TEMPLATE_PATH := $(SDK_ROOT)/components/toolchain/gcc
+TEMPLATE_PATH := $(NRF_SDK_PATH)/components/toolchain/gcc
 
 
 include $(TEMPLATE_PATH)/Makefile.common
@@ -172,6 +191,6 @@ erase:
 	nrfjprog -f nrf52 --eraseall
 
 SDK_CONFIG_FILE := ../config/sdk_config.h
-CMSIS_CONFIG_TOOL := $(SDK_ROOT)/external_tools/cmsisconfig/CMSIS_Configuration_Wizard.jar
+CMSIS_CONFIG_TOOL := $(NRF_SDK_PATH)/external_tools/cmsisconfig/CMSIS_Configuration_Wizard.jar
 sdk_config:
 	java -jar $(CMSIS_CONFIG_TOOL) $(SDK_CONFIG_FILE)

@@ -95,9 +95,9 @@
     </folder>
     <folder Name="Application">
       <file file_name="../config/sdk_config.h" />
-      <file file_name="../../../main.cc" />
+      <file file_name="../../../main.cpp" />
       <folder Name="cc1101">
-        <file file_name="../../../cc1101/cc1101.cc" />
+        <file file_name="../../../cc1101/cc1101.cpp" />
         <file file_name="../../../cc1101/cc1101.h" />
         <file file_name="../../../cc1101/cc1101_rf_settings.h" />
         <file file_name="../../../cc1101/cc1101defins.h" />
