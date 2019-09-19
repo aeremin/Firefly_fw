@@ -103,8 +103,6 @@ bool Cc1101::ReadFifo(RadioPacket* result) {
 
   RadioPacket PktRx;
   memcpy(&PktRx, rx + 1, sizeof(RadioPacket));
-  NRF_LOG_INFO("From %u; To: %u; TrrID: %u; PktID: %u; Cmd: %u", PktRx.From, PktRx.To, PktRx.TransmitterID, PktRx.PktID, PktRx.Cmd);
-  NRF_LOG_INFO("Thr: %d, Dmg: %u, Pwr: %u", PktRx.Beacon.RssiThr, PktRx.Beacon.Damage, PktRx.Beacon.Power);
   return true;
 }
 
