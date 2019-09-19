@@ -55,6 +55,8 @@ class Cc1101 {
 
   void Transmit(const RadioPacket& packet);
 
+  void SetChannel(uint8_t AChannel) { WriteConfigurationRegister(CC_CHANNR, AChannel); }
+
  private:
   // Sends a single-byte instruction to the CC1101.
   // See documentation of instructions in datasheet, p.32, 
@@ -84,7 +86,6 @@ class Cc1101 {
   void FlushRxFIFO() { WriteStrobe(CC_SFRX); }
   void SetTxPower(uint8_t APwr)  { WriteConfigurationRegister(CC_PATABLE, APwr); }
   void SetPktSize(uint8_t ASize) { WriteConfigurationRegister(CC_PKTLEN, ASize); }
-  void SetChannel(uint8_t AChannel) { WriteConfigurationRegister(CC_CHANNR, AChannel); }
 
   void Recalibrate();
 
