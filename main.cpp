@@ -15,11 +15,14 @@
 #include "task.h"
 #include "cc1101/cc1101.h"
 #include "ble/ble.h"
+#include "rgb_led.h"
 
 #define SPI_INSTANCE 0
 static const nrf_drv_spi_t spi = NRF_DRV_SPI_INSTANCE(SPI_INSTANCE);
 
 static Cc1101 cc1101(spi);
+
+static RgbLed led;
 
 struct MagicPathRadioPacket {
     uint8_t r, g, b;
@@ -47,6 +50,7 @@ static void RadioTask(void*) {
 void OnBle(bool on) {
   // FIXME: gColor should probably be mutex-protected.
   gColor = on ? MagicPathRadioPacket{/*r = */30, /*g = */0, /*b = */30} : MagicPathRadioPacket{/*r = */0, /*g = */30, /*b = */0};
+  led.SetColor(8 * gColor.r, 8 * gColor.g, 8 * gColor.b);
 }
 
 int main(void) {
@@ -58,7 +62,9 @@ int main(void) {
   NRF_LOG_INFO("Firefly started!");
 
   SetupTimer();
+  led.Init();
   InitBle(OnBle);
+  OnBle(false);
 
   xTaskCreate(RadioTask, "Radio", /*stack depth = */configMINIMAL_STACK_SIZE + 100,
               /*pvParameters=*/nullptr, /*priority = */3, &g_radio_task_handle);

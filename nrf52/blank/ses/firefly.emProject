@@ -80,6 +80,7 @@
       <file file_name="$(NRF_SDK_PATH)/modules/nrfx/drivers/src/nrfx_uart.c" />
       <file file_name="$(NRF_SDK_PATH)/modules/nrfx/drivers/src/nrfx_clock.c" />
       <file file_name="$(NRF_SDK_PATH)/modules/nrfx/drivers/src/nrfx_uarte.c" />
+      <file file_name="$(NRF_SDK_PATH)/modules/nrfx/drivers/src/nrfx_pwm.c" />
     </folder>
     <folder Name="FreeRTOS">
       <file file_name="$(NRF_SDK_PATH)/external/freertos/source/croutine.c" />
@@ -136,6 +137,8 @@
         <file file_name="../../../ble/ble.h" />
         <file file_name="../../../ble/ble.c" />
       </folder>
+      <file file_name="../../../rgb_led.cpp" />
+      <file file_name="../../../rgb_led.h" />
     </folder>
   </project>
   <configuration
