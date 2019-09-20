@@ -17,9 +17,7 @@
 #include "ble/ble.h"
 #include "rgb_led.h"
 
-#define SPI_INSTANCE 0
-static const nrf_drv_spi_t spi = NRF_DRV_SPI_INSTANCE(SPI_INSTANCE);
-
+static const nrf_drv_spi_t spi = NRF_DRV_SPI_INSTANCE_0;
 static Cc1101 cc1101(spi);
 
 static RgbLed led;
