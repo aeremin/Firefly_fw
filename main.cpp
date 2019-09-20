@@ -3,7 +3,6 @@
 #include "app_timer.h"
 #include "app_util_platform.h"
 #include "boards.h"
-#include "cc1101/cc1101.h"
 #include "nrf_delay.h"
 #include "nrf_drv_clock.h"
 #include "nrf_drv_gpiote.h"
@@ -14,6 +13,8 @@
 #include "nrf_log_default_backends.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "cc1101/cc1101.h"
+#include "ble/ble.h"
 
 #define SPI_INSTANCE 0
 static const nrf_drv_spi_t spi = NRF_DRV_SPI_INSTANCE(SPI_INSTANCE);
@@ -52,6 +53,7 @@ int main(void) {
   NRF_LOG_INFO("Firefly started!");
 
   SetupTimer();
+  InitBle();
 
   xTaskCreate(RadioTask, "Radio", /*stack depth = */configMINIMAL_STACK_SIZE + 100,
               /*pvParameters=*/nullptr, /*priority = */3, &g_radio_task_handle);
