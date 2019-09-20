@@ -22,10 +22,6 @@
 #include "nrf_log_ctrl.h"
 #include "nrf_log_default_backends.h"
 
-#define ADVERTISING_LED BSP_BOARD_LED_0 /**< Is on when device is advertising. */
-#define CONNECTED_LED BSP_BOARD_LED_1   /**< Is on when device has connected. */
-#define LEDBUTTON_LED BSP_BOARD_LED_2   /**< LED to be toggled with the help of the LED Button Service. */
-
 #define DEVICE_NAME "Nordic_Blinky" /**< Name of device. Will be included in the advertising data. */
 
 #define APP_BLE_OBSERVER_PRIO 3 /**< Application's BLE observer priority. You shouldn't need to modify this value. */
@@ -77,15 +73,12 @@ static void BleEventHandler(ble_evt_t const* p_ble_evt, void* p_context) {
   switch (p_ble_evt->header.evt_id) {
     case BLE_GAP_EVT_CONNECTED:
       NRF_LOG_INFO("Connected");
-      bsp_board_led_on(CONNECTED_LED);
-      bsp_board_led_off(ADVERTISING_LED);
       m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
       APP_ERROR_CHECK(nrf_ble_qwr_conn_handle_assign(&m_qwr, m_conn_handle));
       break;
 
     case BLE_GAP_EVT_DISCONNECTED:
       NRF_LOG_INFO("Disconnected");
-      bsp_board_led_off(CONNECTED_LED);
       m_conn_handle = BLE_CONN_HANDLE_INVALID;
       StartAdvertising();
       break;
@@ -210,7 +203,6 @@ static void LedWriteHandler(uint16_t conn_handle, ble_lbs_t* p_lbs, uint8_t led_
     NRF_LOG_INFO("Received LED ON!");
   } else {
     gBleCallback(false);
-    bsp_board_led_off(LEDBUTTON_LED);
     NRF_LOG_INFO("Received LED OFF!");
   }
 }
