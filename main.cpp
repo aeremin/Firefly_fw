@@ -21,7 +21,7 @@ static const nrf_drv_spi_t spi = NRF_DRV_SPI_INSTANCE(SPI_INSTANCE);
 static Cc1101 cc1101(spi);
 
 struct MagicPathRadioPacket {
-    uint32_t ID;
+    uint8_t r, g, b;
 } __attribute__ ((__packed__));
 
 void SetupTimer() {
@@ -29,14 +29,15 @@ void SetupTimer() {
   nrf_drv_clock_lfclk_request(NULL);
 }
 
+MagicPathRadioPacket color = {/*r = */30, /*g = */0, /*b = */10};
+
 static TaskHandle_t g_radio_task_handle = 0;
 static void RadioTask(void*) {
   cc1101.Init();
   cc1101.SetChannel(1);
-  MagicPathRadioPacket r;
-  r.ID = 1;
+  
   while (true) {
-    cc1101.Transmit(r);
+    cc1101.Transmit(color);
     nrf_delay_ms(100);
     NRF_LOG_FLUSH();
   } 
