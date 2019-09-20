@@ -5,7 +5,9 @@
 extern "C" {
 #endif
 
-void InitBle();
+typedef void (*BleCallback)(bool);
+
+void InitBle(BleCallback callback);
 
 #ifdef __cplusplus
 }

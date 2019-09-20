@@ -30,7 +30,7 @@ void SetupTimer() {
   nrf_drv_clock_lfclk_request(NULL);
 }
 
-MagicPathRadioPacket color = {/*r = */30, /*g = */0, /*b = */10};
+MagicPathRadioPacket gColor = {/*r = */30, /*g = */0, /*b = */30};
 
 static TaskHandle_t g_radio_task_handle = 0;
 static void RadioTask(void*) {
@@ -38,10 +38,15 @@ static void RadioTask(void*) {
   cc1101.SetChannel(1);
   
   while (true) {
-    cc1101.Transmit(color);
+    cc1101.Transmit(gColor);
     nrf_delay_ms(100);
     NRF_LOG_FLUSH();
   } 
+}
+
+void OnBle(bool on) {
+  // FIXME: gColor should probably be mutex-protected.
+  gColor = on ? MagicPathRadioPacket{/*r = */30, /*g = */0, /*b = */30} : MagicPathRadioPacket{/*r = */0, /*g = */30, /*b = */0};
 }
 
 int main(void) {
@@ -53,7 +58,7 @@ int main(void) {
   NRF_LOG_INFO("Firefly started!");
 
   SetupTimer();
-  InitBle();
+  InitBle(OnBle);
 
   xTaskCreate(RadioTask, "Radio", /*stack depth = */configMINIMAL_STACK_SIZE + 100,
               /*pvParameters=*/nullptr, /*priority = */3, &g_radio_task_handle);

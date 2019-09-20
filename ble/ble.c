@@ -55,6 +55,8 @@ static uint8_t m_adv_handle = BLE_GAP_ADV_SET_HANDLE_NOT_SET;           /**< Adv
 static uint8_t m_enc_advdata[BLE_GAP_ADV_SET_DATA_SIZE_MAX];            /**< Buffer for storing an encoded advertising set. */
 static uint8_t m_enc_scan_response_data[BLE_GAP_ADV_SET_DATA_SIZE_MAX]; /**< Buffer for storing an encoded scan data. */
 
+static BleCallback gBleCallback = NULL;
+
 /**@brief Struct that contains pointers to the encoded advertising data. */
 static ble_gap_adv_data_t m_adv_data = {
   .adv_data = {
@@ -204,9 +206,10 @@ static void InitBleStack() {
 
 static void LedWriteHandler(uint16_t conn_handle, ble_lbs_t* p_lbs, uint8_t led_state) {
   if (led_state) {
-    bsp_board_led_on(LEDBUTTON_LED);
+    gBleCallback(true);
     NRF_LOG_INFO("Received LED ON!");
   } else {
+    gBleCallback(false);
     bsp_board_led_off(LEDBUTTON_LED);
     NRF_LOG_INFO("Received LED OFF!");
   }
@@ -241,7 +244,8 @@ static void InitConnectionParams() {
   APP_ERROR_CHECK(ble_conn_params_init(&cp_init));
 }
 
-void InitBle(void) {
+void InitBle(BleCallback callback) {
+  gBleCallback = callback;
   InitBleStack();
   InitGapParams();
   InitGatt();
