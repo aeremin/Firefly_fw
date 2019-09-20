@@ -56,7 +56,7 @@ void Cc1101::Init() {
   RfConfig();
   FlushRxFIFO();
 
-  SetTxPower(CC_PwrMinus20dBm);
+  SetTxPower(CC_PwrMinus30dBm);
   SetChannel(0);
 
   g_task_to_nofify = xTaskGetCurrentTaskHandle();
