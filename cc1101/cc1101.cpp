@@ -5,8 +5,6 @@
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 
-#include "task.h"
-
 #include "cc1101_rf_settings.h"
 
 namespace {
@@ -59,7 +57,6 @@ void Cc1101::Init() {
   FlushRxFIFO();
 
   SetTxPower(CC_PwrMinus20dBm);
-  SetPktSize(sizeof(RadioPacket));
   SetChannel(0);
 
   g_task_to_nofify = xTaskGetCurrentTaskHandle();
@@ -87,49 +84,6 @@ uint8_t Cc1101::ReadRegister(uint8_t reg, uint8_t* status) {
   APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi_, tx, 2, rx, 2));
   if (status) *status = rx[0];
   return rx[1];
-}
-
-bool Cc1101::ReadFifo(RadioPacket* result) {
-  uint8_t status = 0;
-  uint8_t b = ReadRegister(CC_PKTSTATUS, &status);
-  if (!(b & 0x80)) {
-    NRF_LOG_INFO("PKTSTATUS = %u, status byte = %u", b, status);
-    return false;
-  }
-
-  uint8_t tx = CC_FIFO | CC_READ_FLAG | CC_BURST_FLAG;
-  uint8_t rx[sizeof(RadioPacket) + 3];
-  APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi_, &tx, 1, rx, sizeof(RadioPacket) + 3));
-
-  RadioPacket PktRx;
-  memcpy(&PktRx, rx + 1, sizeof(RadioPacket));
-  return true;
-}
-
-bool Cc1101::Receive(uint32_t timeout_ms, RadioPacket* result) {
-  Recalibrate();
-  FlushRxFIFO();
-  EnterRX();
-
-  if(ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(timeout_ms))) {
-    return ReadFifo(result);
-  } else {
-    EnterIdle();
-    return false;
-  } 
-}
-
-void Cc1101::Transmit(const RadioPacket& packet) {
-  Recalibrate();
-  EnterTX();
-  WriteTX(packet);
-  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-}
-
-void Cc1101::WriteTX(const RadioPacket& packet) {
-  uint8_t tx[sizeof(RadioPacket) + 1] = { CC_FIFO | CC_WRITE_FLAG | CC_BURST_FLAG };
-  memcpy(tx + 1, &packet, sizeof(RadioPacket));
-  APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi_, tx, sizeof(RadioPacket) + 1, nullptr, 0));
 }
 
 void Cc1101::Recalibrate() {

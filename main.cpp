@@ -20,6 +20,45 @@ static const nrf_drv_spi_t spi = NRF_DRV_SPI_INSTANCE(SPI_INSTANCE);
 
 static Cc1101 cc1101(spi);
 
+struct RadiationRadioPacket {
+    uint16_t From;  // 2
+    uint16_t To;    // 2
+    uint16_t TransmitterID; // 2
+    uint8_t Cmd; // 1
+    uint8_t PktID; // 1
+    union {
+        struct {
+            uint16_t MaxLvlID;
+            uint8_t Reply;
+        } __attribute__ ((__packed__)) Pong; // 3
+
+        struct {
+            int8_t RssiThr;
+            uint8_t Damage;
+            uint8_t Power;
+        } __attribute__ ((__packed__)) Beacon; // 3
+
+        struct {
+            uint8_t Power;
+            int8_t RssiThr;
+            uint8_t Damage;
+        } __attribute__ ((__packed__)) LustraParams; // 3
+
+        struct {
+            uint8_t ParamID;
+            uint16_t Value;
+        } __attribute__ ((__packed__)) LocketParam; // 3
+
+        struct {
+            int8_t RssiThr;
+        } __attribute__ ((__packed__)) Die; // 1
+    } __attribute__ ((__packed__)); // union
+} __attribute__ ((__packed__));
+
+struct MagicPathRadioPacket {
+    uint32_t ID;
+} __attribute__ ((__packed__));
+
 class RxData_t {
  public:
   int32_t Cnt;
@@ -60,25 +99,21 @@ static void OuchTask(void*) {
 }
 
 const bool g_transmit = true;
-const bool g_receive = false;
+const bool g_receive = true;
 
 static TaskHandle_t g_radio_task_handle = 0;
 static void RadioTask(void*) {
   cc1101.Init();
-  RadioPacket r;
-  r.Cmd = 3;
-  r.To = 0;
-  r.From = 1057;
-  r.TransmitterID = 1057;
-  r.Beacon.RssiThr = -124;
-  r.Beacon.Damage = 2;
-  r.Beacon.Power = 91;
+  cc1101.SetChannel(1);
+  MagicPathRadioPacket r;
+  r.ID = 1;
   while (true) {
     if (g_transmit) {
       cc1101.Transmit(r);
       nrf_delay_ms(100);
     }
     if (g_receive) {
+      RadiationRadioPacket r;
       if (cc1101.Receive(360, &r)) {
         accumulator.Cnt++;
         accumulator.Summ += 80 + 132;
@@ -87,7 +122,7 @@ static void RadioTask(void*) {
       }
     }
     NRF_LOG_FLUSH();
-  }  
+  } 
 }
 
 int main(void) {

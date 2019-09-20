@@ -3,43 +3,9 @@
 
 #include "nrf_drv_spi.h"
 #include "FreeRTOS.h"
+#include "task.h"
 
 #include "cc1101defins.h"
-
-struct RadioPacket {
-    uint16_t From;  // 2
-    uint16_t To;    // 2
-    uint16_t TransmitterID; // 2
-    uint8_t Cmd; // 1
-    uint8_t PktID; // 1
-    union {
-        struct {
-            uint16_t MaxLvlID;
-            uint8_t Reply;
-        } __attribute__ ((__packed__)) Pong; // 3
-
-        struct {
-            int8_t RssiThr;
-            uint8_t Damage;
-            uint8_t Power;
-        } __attribute__ ((__packed__)) Beacon; // 3
-
-        struct {
-            uint8_t Power;
-            int8_t RssiThr;
-            uint8_t Damage;
-        } __attribute__ ((__packed__)) LustraParams; // 3
-
-        struct {
-            uint8_t ParamID;
-            uint16_t Value;
-        } __attribute__ ((__packed__)) LocketParam; // 3
-
-        struct {
-            int8_t RssiThr;
-        } __attribute__ ((__packed__)) Die; // 1
-    } __attribute__ ((__packed__)); // union
-} __attribute__ ((__packed__));
 
 // Representation of CC1101 radio tranceiver chip.
 // See datasheet here: http://www.ti.com/lit/ds/symlink/cc1101.pdf
@@ -51,11 +17,31 @@ class Cc1101 {
   // TODO(aeremin) Return bool (false if failed to init)
   void Init();
 
-  bool Receive(uint32_t timeout_ms, RadioPacket* result);
-
-  void Transmit(const RadioPacket& packet);
-
   void SetChannel(uint8_t AChannel) { WriteConfigurationRegister(CC_CHANNR, AChannel); }
+
+  template<typename RadioPacketT>
+  bool Receive(uint32_t timeout_ms, RadioPacketT* result) {
+    SetPktSize(sizeof(RadioPacketT));
+    Recalibrate();
+    FlushRxFIFO();
+    EnterRX();
+
+    if(ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(timeout_ms))) {
+      return ReadFifo(result);
+    } else {
+      EnterIdle();
+      return false;
+    } 
+  }
+
+  template<typename RadioPacketT>
+  void Transmit(const RadioPacketT& packet) {
+    SetPktSize(sizeof(RadioPacketT));
+    Recalibrate();
+    EnterTX();
+    WriteTX(packet);
+    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+  }
 
  private:
   // Sends a single-byte instruction to the CC1101.
@@ -74,8 +60,29 @@ class Cc1101 {
   // If status is provided, status byte will be written into it.
   uint8_t ReadRegister(uint8_t reg, uint8_t* status = nullptr);
   
-  bool ReadFifo(RadioPacket* result);
-  void WriteTX(const RadioPacket& packet);
+  template<typename RadioPacketT>
+  bool ReadFifo(RadioPacketT* result) {
+    uint8_t status = 0;
+    uint8_t b = ReadRegister(CC_PKTSTATUS, &status);
+    if (!(b & 0x80)) {
+      return false;
+    }
+
+    uint8_t tx = CC_FIFO | CC_READ_FLAG | CC_BURST_FLAG;
+    uint8_t rx[sizeof(RadioPacketT) + 3];
+    APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi_, &tx, 1, rx, sizeof(RadioPacketT) + 3));
+
+    RadioPacketT PktRx;
+    memcpy(&PktRx, rx + 1, sizeof(RadioPacketT));
+    return true;
+  }
+
+  template<typename RadioPacketT>
+  void WriteTX(const RadioPacketT& packet) {
+    uint8_t tx[sizeof(RadioPacketT) + 1] = { CC_FIFO | CC_WRITE_FLAG | CC_BURST_FLAG };
+    memcpy(tx + 1, &packet, sizeof(RadioPacketT));
+    APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi_, tx, sizeof(RadioPacketT) + 1, nullptr, 0));
+  }
 
   void RfConfig();
 
