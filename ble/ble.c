@@ -39,8 +39,6 @@
 #define NEXT_CONN_PARAMS_UPDATE_DELAY APP_TIMER_TICKS(5000)   /**< Time between each call to sd_ble_gap_conn_param_update after the first call (5 seconds). */
 #define MAX_CONN_PARAMS_UPDATE_COUNT 3                        /**< Number of attempts before giving up the connection parameter negotiation. */
 
-#define DEAD_BEEF 0xDEADBEEF /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
-
 BLE_LBS_DEF(m_lbs);       /**< LED Button Service instance. */
 NRF_BLE_GATT_DEF(m_gatt); /**< GATT module instance. */
 
