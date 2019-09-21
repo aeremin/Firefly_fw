@@ -39,8 +39,20 @@
 #define NEXT_CONN_PARAMS_UPDATE_DELAY APP_TIMER_TICKS(5000)   /**< Time between each call to sd_ble_gap_conn_param_update after the first call (5 seconds). */
 #define MAX_CONN_PARAMS_UPDATE_COUNT 3                        /**< Number of attempts before giving up the connection parameter negotiation. */
 
-BLE_LBS_DEF(m_lbs);       /**< LED Button Service instance. */
-NRF_BLE_GATT_DEF(m_gatt); /**< GATT module instance. */
+// LED Button Service instance.
+static ble_lbs_t m_lbs;
+NRF_SECTION_SET_ITEM_REGISTER(sdh_ble_observers, BLE_LBS_BLE_OBSERVER_PRIO, static nrf_sdh_ble_evt_observer_t m_lbs_obs) = {                                                                                                   
+    /* handler = */ ble_lbs_on_ble_evt,                                                                          
+    /* p_context = */ &m_lbs                                                                      
+};
+
+// GATT module instance.
+static nrf_ble_gatt_t m_gatt;
+NRF_SECTION_SET_ITEM_REGISTER(sdh_ble_observers, NRF_BLE_GATT_BLE_OBSERVER_PRIO, static nrf_sdh_ble_evt_observer_t m_gatt_obs) = {                                                                                                   
+    /* handler = */ nrf_ble_gatt_on_ble_evt,                                                                          
+    /* p_context = */ &m_gatt                                                                      
+};
+
 
 static uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID; /**< Handle of the current connection. */
 
