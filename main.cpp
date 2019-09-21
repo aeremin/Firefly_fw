@@ -14,13 +14,13 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "cc1101/cc1101.h"
-#include "ble/ble.h"
 #include "rgb_led.h"
+#include "ble/bluetooth.h"
 
-static const nrf_drv_spi_t spi = NRF_DRV_SPI_INSTANCE_0;
-static Cc1101 cc1101(spi);
-
-static RgbLed led;
+const nrf_drv_spi_t spi = NRF_DRV_SPI_INSTANCE_0;
+Cc1101 cc1101(spi);
+BluetoothLowEnergy ble;
+RgbLed led;
 
 struct MagicPathRadioPacket {
     uint8_t r, g, b;
@@ -61,7 +61,7 @@ int main(void) {
 
   SetupTimer();
   led.Init();
-  InitBle(OnBle);
+  ble.Init(OnBle);
   OnBle(false);
 
   xTaskCreate(RadioTask, "Radio", /*stack depth = */configMINIMAL_STACK_SIZE + 100,

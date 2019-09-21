@@ -1,6 +1,5 @@
-#include "ble.h"
+#include "bluetooth.h"
 
-#include "app_button.h"
 #include "app_error.h"
 #include "app_timer.h"
 #include "ble.h"
@@ -14,7 +13,6 @@
 #include "nordic_common.h"
 #include "nrf.h"
 #include "nrf_ble_gatt.h"
-#include "nrf_ble_qwr.h"
 #include "nrf_sdh.h"
 #include "nrf_sdh_ble.h"
 
@@ -57,32 +55,32 @@ NRF_SECTION_SET_ITEM_REGISTER(sdh_ble_observers, NRF_BLE_GATT_BLE_OBSERVER_PRIO,
     /* p_context = */ &m_gatt                                                                      
 };
 
+BluetoothLowEnergy::BleCallback BluetoothLowEnergy::gBleCallback = nullptr;
 
-static uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID; /**< Handle of the current connection. */
+BluetoothLowEnergy::BluetoothLowEnergy()
+: m_conn_handle(BLE_CONN_HANDLE_INVALID),
+  m_adv_handle(BLE_GAP_ADV_SET_HANDLE_NOT_SET),
+  m_adv_data({
+    /* adv_data = */ {
+      /* p_data = */ m_enc_advdata,
+      /* len = */ BLE_GAP_ADV_SET_DATA_SIZE_MAX
+    },
+    /* scan_rsp_data = */ {
+      /* p_data = */ m_enc_scan_response_data,
+      /* len = */ BLE_GAP_ADV_SET_DATA_SIZE_MAX
+    }
+  })
+{}
 
-static uint8_t m_adv_handle = BLE_GAP_ADV_SET_HANDLE_NOT_SET;           /**< Advertising handle used to identify an advertising set. */
-static uint8_t m_enc_advdata[BLE_GAP_ADV_SET_DATA_SIZE_MAX];            /**< Buffer for storing an encoded advertising set. */
-static uint8_t m_enc_scan_response_data[BLE_GAP_ADV_SET_DATA_SIZE_MAX]; /**< Buffer for storing an encoded scan data. */
-
-static BleCallback gBleCallback = nullptr;
-
-/**@brief Struct that contains pointers to the encoded advertising data. */
-static ble_gap_adv_data_t m_adv_data = {
-  /* adv_data = */ {
-    /* p_data = */ m_enc_advdata,
-    /* len = */ BLE_GAP_ADV_SET_DATA_SIZE_MAX
-  },
-  /* scan_rsp_data = */ {
-    /* p_data = */ m_enc_scan_response_data,
-    /* len = */ BLE_GAP_ADV_SET_DATA_SIZE_MAX
-  }
-};
-
-static void StartAdvertising() {
+void BluetoothLowEnergy::StartAdvertising() {
   APP_ERROR_CHECK(sd_ble_gap_adv_start(m_adv_handle, APP_BLE_CONN_CFG_TAG));
 }
 
-static void BleEventHandler(ble_evt_t const* p_ble_evt, void* p_context) {
+static void GlobalBleEventHandler(ble_evt_t const* p_ble_evt, void* p_context) {
+  reinterpret_cast<BluetoothLowEnergy*>(p_context)->BleEventHandler(p_ble_evt);
+}
+
+void BluetoothLowEnergy::BleEventHandler(ble_evt_t const* p_ble_evt) {
   switch (p_ble_evt->header.evt_id) {
     case BLE_GAP_EVT_CONNECTED:
       NRF_LOG_INFO("Connected");
@@ -137,7 +135,7 @@ static void BleEventHandler(ble_evt_t const* p_ble_evt, void* p_context) {
 
 // This function sets up all the necessary GAP (Generic Access Profile) parameters of the
 // device including the device name, appearance, and the preferred connection parameters.
-static void InitGapParams() {
+void BluetoothLowEnergy::InitGapParams() {
   ble_gap_conn_sec_mode_t sec_mode;
   BLE_GAP_CONN_SEC_MODE_SET_OPEN(&sec_mode);
   APP_ERROR_CHECK(sd_ble_gap_device_name_set(&sec_mode,
@@ -153,12 +151,12 @@ static void InitGapParams() {
   APP_ERROR_CHECK(sd_ble_gap_ppcp_set(&gap_conn_params));
 }
 
-static void InitGatt(void) {
+void BluetoothLowEnergy::InitGatt(void) {
   APP_ERROR_CHECK(nrf_ble_gatt_init(&m_gatt, nullptr));
 }
 
 // Initializes the SoftDevice and the BLE event interrupt.
-static void InitBleStack() {
+void BluetoothLowEnergy::InitBleStack() {
   APP_ERROR_CHECK(nrf_sdh_enable_request());
 
   // Configure the BLE stack using the default settings.
@@ -170,13 +168,13 @@ static void InitBleStack() {
   APP_ERROR_CHECK(nrf_sdh_ble_enable(&ram_start));
 
   // Register a handler for BLE events.
-  NRF_SDH_BLE_OBSERVER(m_ble_observer, APP_BLE_OBSERVER_PRIO, BleEventHandler, nullptr);
+  NRF_SDH_BLE_OBSERVER(m_ble_observer, APP_BLE_OBSERVER_PRIO, GlobalBleEventHandler, this);
 }
 
 // Function for initializing the Advertising functionality.
 // Encodes the required advertising data and passes it to the stack.
 // Also builds a structure to be passed to the stack when starting advertising.
- static void InitAdvertising() {
+void BluetoothLowEnergy::InitAdvertising() {
   ble_uuid_t adv_uuids[] = {{LBS_UUID_SERVICE, m_lbs.uuid_type}};
 
   // Build and set advertising data.
@@ -211,10 +209,10 @@ static void InitBleStack() {
 
 static void LedWriteHandler(uint16_t conn_handle, ble_lbs_t* p_lbs, uint8_t led_state) {
   if (led_state) {
-    gBleCallback(true);
+    BluetoothLowEnergy::gBleCallback(true);
     NRF_LOG_INFO("Received LED ON!");
   } else {
-    gBleCallback(false);
+    BluetoothLowEnergy::gBleCallback(false);
     NRF_LOG_INFO("Received LED OFF!");
   }
 }
@@ -223,14 +221,14 @@ static void GenericErrorHandler(uint32_t nrf_error) {
   APP_ERROR_HANDLER(nrf_error);
 }
 
-static void InitServices() {
+void BluetoothLowEnergy::InitServices() {
   // Initialize LED Button Service (LBS).
   ble_lbs_init_t init = {0};
   init.led_write_handler = LedWriteHandler;
   APP_ERROR_CHECK(ble_lbs_init(&m_lbs, &init));
 }
 
-static void InitConnectionParams() {
+void BluetoothLowEnergy::InitConnectionParams() {
   ble_conn_params_init_t cp_init;
   memset(&cp_init, 0, sizeof(cp_init));
   cp_init.p_conn_params = nullptr;
@@ -243,7 +241,7 @@ static void InitConnectionParams() {
   APP_ERROR_CHECK(ble_conn_params_init(&cp_init));
 }
 
-void InitBle(BleCallback callback) {
+void BluetoothLowEnergy::Init(BleCallback callback) {
   gBleCallback = callback;
   InitBleStack();
   InitGapParams();
