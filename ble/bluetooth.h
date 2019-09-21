@@ -34,6 +34,10 @@ private:
   uint8_t enc_scan_response_data_[BLE_GAP_ADV_SET_DATA_SIZE_MAX];
   // Struct that contains pointers to the encoded advertising data.
   ble_gap_adv_data_t adv_data_;
+
+  // A tag identifying the SoftDevice BLE configuration.
+  // We aren't going to change configurations after first initialization.
+  constexpr static uint8_t connection_configuraion_tag_ = 1;
 };
 
 #endif // BLUETOOTH_H

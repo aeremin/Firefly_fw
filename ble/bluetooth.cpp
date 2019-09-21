@@ -9,23 +9,6 @@
 #include "nrf_sdh.h"
 #include "nrf_log.h"
 
-#define DEVICE_NAME "Nordic_Blinky" /**< Name of device. Will be included in the advertising data. */
-
-#define APP_BLE_OBSERVER_PRIO 3 /**< Application's BLE observer priority. You shouldn't need to modify this value. */
-#define APP_BLE_CONN_CFG_TAG 1  /**< A tag identifying the SoftDevice BLE configuration. */
-
-#define APP_ADV_INTERVAL 64                                    /**< The advertising interval (in units of 0.625 ms; this value corresponds to 40 ms). */
-#define APP_ADV_DURATION BLE_GAP_ADV_TIMEOUT_GENERAL_UNLIMITED /**< The advertising time-out (in units of seconds). When set to 0, we will never time out. */
-
-#define MIN_CONN_INTERVAL MSEC_TO_UNITS(100, UNIT_1_25_MS) /**< Minimum acceptable connection interval (0.5 seconds). */
-#define MAX_CONN_INTERVAL MSEC_TO_UNITS(200, UNIT_1_25_MS) /**< Maximum acceptable connection interval (1 second). */
-#define SLAVE_LATENCY 0                                    /**< Slave latency. */
-#define CONN_SUP_TIMEOUT MSEC_TO_UNITS(4000, UNIT_10_MS)   /**< Connection supervisory time-out (4 seconds). */
-
-#define FIRST_CONN_PARAMS_UPDATE_DELAY APP_TIMER_TICKS(20000) /**< Time from initiating event (connect or start of notification) to first time sd_ble_gap_conn_param_update is called (15 seconds). */
-#define NEXT_CONN_PARAMS_UPDATE_DELAY APP_TIMER_TICKS(5000)   /**< Time between each call to sd_ble_gap_conn_param_update after the first call (5 seconds). */
-#define MAX_CONN_PARAMS_UPDATE_COUNT 3                        /**< Number of attempts before giving up the connection parameter negotiation. */
-
 // NRF_SECTION_SET_ITEM_REGISTER uses _Static_assert (which is C11 feature).
 // But it is not available when building as C++ code. So we do this hack-define to fix compilability.
 #define _Static_assert(EXPR, MSG) static_assert(EXPR, MSG);
@@ -62,7 +45,7 @@ BluetoothLowEnergy::BluetoothLowEnergy()
 {}
 
 void BluetoothLowEnergy::StartAdvertising() {
-  APP_ERROR_CHECK(sd_ble_gap_adv_start(adv_handle_, APP_BLE_CONN_CFG_TAG));
+  APP_ERROR_CHECK(sd_ble_gap_adv_start(adv_handle_, connection_configuraion_tag_));
 }
 
 static void GlobalBleEventHandler(ble_evt_t const* p_ble_evt, void* p_context) {
@@ -127,15 +110,19 @@ void BluetoothLowEnergy::BleEventHandler(ble_evt_t const* p_ble_evt) {
 void BluetoothLowEnergy::InitGapParams() {
   ble_gap_conn_sec_mode_t sec_mode;
   BLE_GAP_CONN_SEC_MODE_SET_OPEN(&sec_mode);
+  const char device_name[] = "Nordic_Blinky";
   APP_ERROR_CHECK(sd_ble_gap_device_name_set(&sec_mode,
-                                             (const uint8_t*)DEVICE_NAME,
-                                             strlen(DEVICE_NAME)));
+                                             (const uint8_t*)device_name,
+                                             strlen(device_name)));
   ble_gap_conn_params_t gap_conn_params;
   memset(&gap_conn_params, 0, sizeof(gap_conn_params));
-  gap_conn_params.min_conn_interval = MIN_CONN_INTERVAL;
-  gap_conn_params.max_conn_interval = MAX_CONN_INTERVAL;
-  gap_conn_params.slave_latency = SLAVE_LATENCY;
-  gap_conn_params.conn_sup_timeout = CONN_SUP_TIMEOUT;
+  // Minimum acceptable connection interval (100ms).
+  gap_conn_params.min_conn_interval = MSEC_TO_UNITS(100, UNIT_1_25_MS);
+  // Maximum acceptable connection interval (200ms).
+  gap_conn_params.max_conn_interval = MSEC_TO_UNITS(200, UNIT_1_25_MS);
+  gap_conn_params.slave_latency = 0;
+  // Connection supervisory time-out (4 seconds).
+  gap_conn_params.conn_sup_timeout = MSEC_TO_UNITS(4000, UNIT_10_MS);
 
   APP_ERROR_CHECK(sd_ble_gap_ppcp_set(&gap_conn_params));
 }
@@ -151,13 +138,15 @@ void BluetoothLowEnergy::InitBleStack() {
   // Configure the BLE stack using the default settings.
   // Fetch the start address of the application RAM.
   uint32_t ram_start = 0;
-  APP_ERROR_CHECK(nrf_sdh_ble_default_cfg_set(APP_BLE_CONN_CFG_TAG, &ram_start));
+  APP_ERROR_CHECK(nrf_sdh_ble_default_cfg_set(connection_configuraion_tag_, &ram_start));
 
   // Enable BLE stack.
   APP_ERROR_CHECK(nrf_sdh_ble_enable(&ram_start));
 
   // Register a handler for BLE events.
-  NRF_SDH_BLE_OBSERVER(m_ble_observer, APP_BLE_OBSERVER_PRIO, GlobalBleEventHandler, this);
+  // All system observers have priority 1 or 2 (as defined in sdk_config.h).
+  const uint8_t observer_priority = 3;
+  NRF_SDH_BLE_OBSERVER(m_ble_observer, observer_priority, GlobalBleEventHandler, this);
 }
 
 // Function for initializing the Advertising functionality.
@@ -187,14 +176,15 @@ void BluetoothLowEnergy::InitAdvertising() {
   memset(&adv_params, 0, sizeof(adv_params));
 
   adv_params.primary_phy = BLE_GAP_PHY_1MBPS;
-  adv_params.duration = APP_ADV_DURATION;
+  adv_params.duration = BLE_GAP_ADV_TIMEOUT_GENERAL_UNLIMITED;
   adv_params.properties.type = BLE_GAP_ADV_TYPE_CONNECTABLE_SCANNABLE_UNDIRECTED;
   adv_params.p_peer_addr = nullptr;
   adv_params.filter_policy = BLE_GAP_ADV_FP_ANY;
-  adv_params.interval = APP_ADV_INTERVAL;
+  // The advertising interval (40 ms).
+  adv_params.interval = MSEC_TO_UNITS(40, UNIT_0_625_MS);
 
   APP_ERROR_CHECK(sd_ble_gap_adv_set_configure(&adv_handle_, &adv_data_, &adv_params));
-}
+};
 
 static void LedWriteHandler(uint16_t conn_handle, ble_lbs_t* p_lbs, uint8_t led_state) {
   if (led_state) {
@@ -221,9 +211,12 @@ void BluetoothLowEnergy::InitConnectionParams() {
   ble_conn_params_init_t cp_init;
   memset(&cp_init, 0, sizeof(cp_init));
   cp_init.p_conn_params = nullptr;
-  cp_init.first_conn_params_update_delay = FIRST_CONN_PARAMS_UPDATE_DELAY;
-  cp_init.next_conn_params_update_delay = NEXT_CONN_PARAMS_UPDATE_DELAY;
-  cp_init.max_conn_params_update_count = MAX_CONN_PARAMS_UPDATE_COUNT;
+  // Time from initiating event (connect or start of notification) to first time 
+  // sd_ble_gap_conn_param_update is called (20 seconds).
+  cp_init.first_conn_params_update_delay = APP_TIMER_TICKS(20000);
+  // Time between each call to sd_ble_gap_conn_param_update after the first call (5 seconds).
+  cp_init.next_conn_params_update_delay = APP_TIMER_TICKS(5000);
+  cp_init.max_conn_params_update_count = 3;
   cp_init.start_on_notify_cccd_handle = BLE_GATT_HANDLE_INVALID;
   cp_init.disconnect_on_fail = true;
   cp_init.error_handler = GenericErrorHandler;
