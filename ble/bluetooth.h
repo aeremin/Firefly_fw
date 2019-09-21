@@ -4,6 +4,8 @@
 #include <cstdint>
 
 #include "ble_advdata.h"
+#include "ble_lbs.h"
+#include "nrf_ble_gatt.h"
 
 class BluetoothLowEnergy {
 public:
@@ -15,6 +17,8 @@ public:
   // Don't use them directly.
   void BleEventHandler(const ble_evt_t* event);
   static BleCallback ble_callback;
+  static ble_lbs_t ble_led_button_service_;
+  static nrf_ble_gatt_t gatt_;
 private:
   void InitBleStack();
   void InitGapParams();

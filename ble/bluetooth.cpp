@@ -4,30 +4,16 @@
 #include "app_error.h"
 #include "ble_advdata.h"
 #include "ble_conn_params.h"
-#include "ble_lbs.h"
-#include "nrf_ble_gatt.h"
 #include "nrf_sdh.h"
 #include "nrf_log.h"
 
-// NRF_SECTION_SET_ITEM_REGISTER uses _Static_assert (which is C11 feature).
+// NRF_SDH_BLE_OBSERVER uses _Static_assert (which is C11 feature).
 // But it is not available when building as C++ code. So we do this hack-define to fix compilability.
 #define _Static_assert(EXPR, MSG) static_assert(EXPR, MSG);
 
-// LED Button Service instance.
-static ble_lbs_t m_lbs;
-NRF_SECTION_SET_ITEM_REGISTER(sdh_ble_observers, BLE_LBS_BLE_OBSERVER_PRIO, static nrf_sdh_ble_evt_observer_t m_lbs_obs) = {                                                                                                   
-    /* handler = */ ble_lbs_on_ble_evt,                                                                          
-    /* p_context = */ &m_lbs                                                                      
-};
-
-// GATT module instance.
-static nrf_ble_gatt_t m_gatt;
-NRF_SECTION_SET_ITEM_REGISTER(sdh_ble_observers, NRF_BLE_GATT_BLE_OBSERVER_PRIO, static nrf_sdh_ble_evt_observer_t m_gatt_obs) = {                                                                                                   
-    /* handler = */ nrf_ble_gatt_on_ble_evt,                                                                          
-    /* p_context = */ &m_gatt                                                                      
-};
-
 BluetoothLowEnergy::BleCallback BluetoothLowEnergy::ble_callback = nullptr;
+ble_lbs_t BluetoothLowEnergy::ble_led_button_service_;
+nrf_ble_gatt_t BluetoothLowEnergy::gatt_;
 
 BluetoothLowEnergy::BluetoothLowEnergy()
 : conn_handle_(BLE_CONN_HANDLE_INVALID),
@@ -41,8 +27,10 @@ BluetoothLowEnergy::BluetoothLowEnergy()
       /* p_data = */ enc_scan_response_data_,
       /* len = */ BLE_GAP_ADV_SET_DATA_SIZE_MAX
     }
-  })
-{}
+  }) {
+  NRF_SDH_BLE_OBSERVER(m_lbs_obs, BLE_LBS_BLE_OBSERVER_PRIO, ble_lbs_on_ble_evt, &BluetoothLowEnergy::ble_led_button_service_);
+  NRF_SDH_BLE_OBSERVER(m_gatt_obs, NRF_BLE_GATT_BLE_OBSERVER_PRIO, nrf_ble_gatt_on_ble_evt, &BluetoothLowEnergy::gatt_);
+}
 
 void BluetoothLowEnergy::StartAdvertising() {
   APP_ERROR_CHECK(sd_ble_gap_adv_start(adv_handle_, connection_configuraion_tag_));
@@ -128,7 +116,7 @@ void BluetoothLowEnergy::InitGapParams() {
 }
 
 void BluetoothLowEnergy::InitGatt(void) {
-  APP_ERROR_CHECK(nrf_ble_gatt_init(&m_gatt, nullptr));
+  APP_ERROR_CHECK(nrf_ble_gatt_init(&gatt_, nullptr));
 }
 
 // Initializes the SoftDevice and the BLE event interrupt.
@@ -143,6 +131,16 @@ void BluetoothLowEnergy::InitBleStack() {
   // Enable BLE stack.
   APP_ERROR_CHECK(nrf_sdh_ble_enable(&ram_start));
 
+
+//NRF_SECTION_SET_ITEM_REGISTER(sdh_ble_observers, BLE_LBS_BLE_OBSERVER_PRIO, static nrf_sdh_ble_evt_observer_t m_lbs_obs) = {                                                                                                   
+//    /* handler = */ ble_lbs_on_ble_evt,                                                                          
+//    /* p_context = */ &m_lbs                                                                      
+//};
+//NRF_SECTION_SET_ITEM_REGISTER(sdh_ble_observers, NRF_BLE_GATT_BLE_OBSERVER_PRIO, static nrf_sdh_ble_evt_observer_t m_gatt_obs) = {                                                                                                   
+//    /* handler = */ nrf_ble_gatt_on_ble_evt,                                                                          
+//    /* p_context = */ &m_gatt                                                                      
+//};
+  
   // Register a handler for BLE events.
   // All system observers have priority 1 or 2 (as defined in sdk_config.h).
   const uint8_t observer_priority = 3;
@@ -153,7 +151,7 @@ void BluetoothLowEnergy::InitBleStack() {
 // Encodes the required advertising data and passes it to the stack.
 // Also builds a structure to be passed to the stack when starting advertising.
 void BluetoothLowEnergy::InitAdvertising() {
-  ble_uuid_t adv_uuids[] = {{LBS_UUID_SERVICE, m_lbs.uuid_type}};
+  ble_uuid_t adv_uuids[] = {{LBS_UUID_SERVICE, ble_led_button_service_.uuid_type}};
 
   // Build and set advertising data.
   ble_advdata_t advdata;
@@ -204,7 +202,7 @@ void BluetoothLowEnergy::InitServices() {
   // Initialize LED Button Service (LBS).
   ble_lbs_init_t init = {0};
   init.led_write_handler = LedWriteHandler;
-  APP_ERROR_CHECK(ble_lbs_init(&m_lbs, &init));
+  APP_ERROR_CHECK(ble_lbs_init(&ble_led_button_service_, &init));
 }
 
 void BluetoothLowEnergy::InitConnectionParams() {
