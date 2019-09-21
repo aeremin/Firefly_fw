@@ -39,6 +39,10 @@
 #define NEXT_CONN_PARAMS_UPDATE_DELAY APP_TIMER_TICKS(5000)   /**< Time between each call to sd_ble_gap_conn_param_update after the first call (5 seconds). */
 #define MAX_CONN_PARAMS_UPDATE_COUNT 3                        /**< Number of attempts before giving up the connection parameter negotiation. */
 
+// NRF_SECTION_SET_ITEM_REGISTER uses _Static_assert (which is C11 feature).
+// But it is not available when building as C++ code. So we do this hack-define to fix compilability.
+#define _Static_assert(EXPR, MSG) static_assert(EXPR, MSG);
+
 // LED Button Service instance.
 static ble_lbs_t m_lbs;
 NRF_SECTION_SET_ITEM_REGISTER(sdh_ble_observers, BLE_LBS_BLE_OBSERVER_PRIO, static nrf_sdh_ble_evt_observer_t m_lbs_obs) = {                                                                                                   

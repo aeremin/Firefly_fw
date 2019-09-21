@@ -135,7 +135,7 @@
       </folder>
       <folder Name="ble">
         <file file_name="../../../ble/ble.h" />
-        <file file_name="../../../ble/ble.c" />
+        <file file_name="../../../ble/ble.cpp" />
       </folder>
       <file file_name="../../../rgb_led.cpp" />
       <file file_name="../../../rgb_led.h" />
