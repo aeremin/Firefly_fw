@@ -43,7 +43,6 @@
 
 BLE_LBS_DEF(m_lbs);       /**< LED Button Service instance. */
 NRF_BLE_GATT_DEF(m_gatt); /**< GATT module instance. */
-NRF_BLE_QWR_DEF(m_qwr);   /**< Context for the Queued Write module.*/
 
 static uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID; /**< Handle of the current connection. */
 
@@ -74,7 +73,6 @@ static void BleEventHandler(ble_evt_t const* p_ble_evt, void* p_context) {
     case BLE_GAP_EVT_CONNECTED:
       NRF_LOG_INFO("Connected");
       m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
-      APP_ERROR_CHECK(nrf_ble_qwr_conn_handle_assign(&m_qwr, m_conn_handle));
       break;
 
     case BLE_GAP_EVT_DISCONNECTED:
@@ -212,12 +210,7 @@ static void GenericErrorHandler(uint32_t nrf_error) {
 }
 
 static void InitServices() {
-  // Initialize Queued Write Module.
-  nrf_ble_qwr_init_t qwr_init = {0};
-  qwr_init.error_handler = GenericErrorHandler;
-  APP_ERROR_CHECK(nrf_ble_qwr_init(&m_qwr, &qwr_init));
-
-  // Initialize LBS.
+  // Initialize LED Button Service (LBS).
   ble_lbs_init_t init = {0};
   init.led_write_handler = LedWriteHandler;
   APP_ERROR_CHECK(ble_lbs_init(&m_lbs, &init));
