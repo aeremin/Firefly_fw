@@ -54,13 +54,13 @@ static BleCallback gBleCallback = NULL;
 
 /**@brief Struct that contains pointers to the encoded advertising data. */
 static ble_gap_adv_data_t m_adv_data = {
-  .adv_data = {
-    .p_data = m_enc_advdata,
-    .len = BLE_GAP_ADV_SET_DATA_SIZE_MAX
+  /* adv_data = */ {
+    /* p_data = */ m_enc_advdata,
+    /* len = */ BLE_GAP_ADV_SET_DATA_SIZE_MAX
   },
-  .scan_rsp_data = {
-    .p_data = m_enc_scan_response_data,
-    .len = BLE_GAP_ADV_SET_DATA_SIZE_MAX
+  /* scan_rsp_data = */ {
+    /* p_data = */ m_enc_scan_response_data,
+    /* len = */ BLE_GAP_ADV_SET_DATA_SIZE_MAX
   }
 };
 
