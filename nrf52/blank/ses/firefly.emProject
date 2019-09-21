@@ -114,7 +114,6 @@
       <file file_name="$(NRF_SDK_PATH)/components/ble/common/ble_conn_state.c" />
       <file file_name="$(NRF_SDK_PATH)/components/ble/common/ble_srv_common.c" />
       <file file_name="$(NRF_SDK_PATH)/components/ble/nrf_ble_gatt/nrf_ble_gatt.c" />
-      <file file_name="$(NRF_SDK_PATH)/components/ble/nrf_ble_qwr/nrf_ble_qwr.c" />
     </folder>
     <folder Name="nRF_BLE_Services">
       <file file_name="$(NRF_SDK_PATH)/components/ble/ble_services/ble_lbs/ble_lbs.c" />
