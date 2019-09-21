@@ -55,25 +55,25 @@ NRF_SECTION_SET_ITEM_REGISTER(sdh_ble_observers, NRF_BLE_GATT_BLE_OBSERVER_PRIO,
     /* p_context = */ &m_gatt                                                                      
 };
 
-BluetoothLowEnergy::BleCallback BluetoothLowEnergy::gBleCallback = nullptr;
+BluetoothLowEnergy::BleCallback BluetoothLowEnergy::ble_callback = nullptr;
 
 BluetoothLowEnergy::BluetoothLowEnergy()
-: m_conn_handle(BLE_CONN_HANDLE_INVALID),
-  m_adv_handle(BLE_GAP_ADV_SET_HANDLE_NOT_SET),
-  m_adv_data({
+: conn_handle_(BLE_CONN_HANDLE_INVALID),
+  adv_handle_(BLE_GAP_ADV_SET_HANDLE_NOT_SET),
+  adv_data_({
     /* adv_data = */ {
-      /* p_data = */ m_enc_advdata,
+      /* p_data = */ enc_advdata_,
       /* len = */ BLE_GAP_ADV_SET_DATA_SIZE_MAX
     },
     /* scan_rsp_data = */ {
-      /* p_data = */ m_enc_scan_response_data,
+      /* p_data = */ enc_scan_response_data_,
       /* len = */ BLE_GAP_ADV_SET_DATA_SIZE_MAX
     }
   })
 {}
 
 void BluetoothLowEnergy::StartAdvertising() {
-  APP_ERROR_CHECK(sd_ble_gap_adv_start(m_adv_handle, APP_BLE_CONN_CFG_TAG));
+  APP_ERROR_CHECK(sd_ble_gap_adv_start(adv_handle_, APP_BLE_CONN_CFG_TAG));
 }
 
 static void GlobalBleEventHandler(ble_evt_t const* p_ble_evt, void* p_context) {
@@ -84,18 +84,18 @@ void BluetoothLowEnergy::BleEventHandler(ble_evt_t const* p_ble_evt) {
   switch (p_ble_evt->header.evt_id) {
     case BLE_GAP_EVT_CONNECTED:
       NRF_LOG_INFO("Connected");
-      m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
+      conn_handle_ = p_ble_evt->evt.gap_evt.conn_handle;
       break;
 
     case BLE_GAP_EVT_DISCONNECTED:
       NRF_LOG_INFO("Disconnected");
-      m_conn_handle = BLE_CONN_HANDLE_INVALID;
+      conn_handle_ = BLE_CONN_HANDLE_INVALID;
       StartAdvertising();
       break;
 
     case BLE_GAP_EVT_SEC_PARAMS_REQUEST:
       // Pairing not supported
-      APP_ERROR_CHECK(sd_ble_gap_sec_params_reply(m_conn_handle,
+      APP_ERROR_CHECK(sd_ble_gap_sec_params_reply(conn_handle_,
                                                   BLE_GAP_SEC_STATUS_PAIRING_NOT_SUPP,
                                                   nullptr,
                                                   nullptr));
@@ -111,7 +111,7 @@ void BluetoothLowEnergy::BleEventHandler(ble_evt_t const* p_ble_evt) {
 
     case BLE_GATTS_EVT_SYS_ATTR_MISSING:
       // No system attributes have been stored.
-      APP_ERROR_CHECK(sd_ble_gatts_sys_attr_set(m_conn_handle, nullptr, 0, 0));
+      APP_ERROR_CHECK(sd_ble_gatts_sys_attr_set(conn_handle_, nullptr, 0, 0));
       break;
 
     case BLE_GATTC_EVT_TIMEOUT:
@@ -190,8 +190,8 @@ void BluetoothLowEnergy::InitAdvertising() {
   srdata.uuids_complete.uuid_cnt = sizeof(adv_uuids) / sizeof(adv_uuids[0]);
   srdata.uuids_complete.p_uuids = adv_uuids;
 
-  APP_ERROR_CHECK(ble_advdata_encode(&advdata, m_adv_data.adv_data.p_data, &m_adv_data.adv_data.len));
-  APP_ERROR_CHECK(ble_advdata_encode(&srdata, m_adv_data.scan_rsp_data.p_data, &m_adv_data.scan_rsp_data.len));
+  APP_ERROR_CHECK(ble_advdata_encode(&advdata, adv_data_.adv_data.p_data, &adv_data_.adv_data.len));
+  APP_ERROR_CHECK(ble_advdata_encode(&srdata, adv_data_.scan_rsp_data.p_data, &adv_data_.scan_rsp_data.len));
 
   // Set advertising parameters.
   ble_gap_adv_params_t adv_params;
@@ -204,15 +204,15 @@ void BluetoothLowEnergy::InitAdvertising() {
   adv_params.filter_policy = BLE_GAP_ADV_FP_ANY;
   adv_params.interval = APP_ADV_INTERVAL;
 
-  APP_ERROR_CHECK(sd_ble_gap_adv_set_configure(&m_adv_handle, &m_adv_data, &adv_params));
+  APP_ERROR_CHECK(sd_ble_gap_adv_set_configure(&adv_handle_, &adv_data_, &adv_params));
 }
 
 static void LedWriteHandler(uint16_t conn_handle, ble_lbs_t* p_lbs, uint8_t led_state) {
   if (led_state) {
-    BluetoothLowEnergy::gBleCallback(true);
+    BluetoothLowEnergy::ble_callback(true);
     NRF_LOG_INFO("Received LED ON!");
   } else {
-    BluetoothLowEnergy::gBleCallback(false);
+    BluetoothLowEnergy::ble_callback(false);
     NRF_LOG_INFO("Received LED OFF!");
   }
 }
@@ -242,7 +242,7 @@ void BluetoothLowEnergy::InitConnectionParams() {
 }
 
 void BluetoothLowEnergy::Init(BleCallback callback) {
-  gBleCallback = callback;
+  ble_callback = callback;
   InitBleStack();
   InitGapParams();
   InitGatt();
