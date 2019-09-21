@@ -64,7 +64,7 @@ static uint8_t m_adv_handle = BLE_GAP_ADV_SET_HANDLE_NOT_SET;           /**< Adv
 static uint8_t m_enc_advdata[BLE_GAP_ADV_SET_DATA_SIZE_MAX];            /**< Buffer for storing an encoded advertising set. */
 static uint8_t m_enc_scan_response_data[BLE_GAP_ADV_SET_DATA_SIZE_MAX]; /**< Buffer for storing an encoded scan data. */
 
-static BleCallback gBleCallback = NULL;
+static BleCallback gBleCallback = nullptr;
 
 /**@brief Struct that contains pointers to the encoded advertising data. */
 static ble_gap_adv_data_t m_adv_data = {
@@ -99,8 +99,8 @@ static void BleEventHandler(ble_evt_t const* p_ble_evt, void* p_context) {
       // Pairing not supported
       APP_ERROR_CHECK(sd_ble_gap_sec_params_reply(m_conn_handle,
                                                   BLE_GAP_SEC_STATUS_PAIRING_NOT_SUPP,
-                                                  NULL,
-                                                  NULL));
+                                                  nullptr,
+                                                  nullptr));
       break;
 
     case BLE_GAP_EVT_PHY_UPDATE_REQUEST: {
@@ -113,7 +113,7 @@ static void BleEventHandler(ble_evt_t const* p_ble_evt, void* p_context) {
 
     case BLE_GATTS_EVT_SYS_ATTR_MISSING:
       // No system attributes have been stored.
-      APP_ERROR_CHECK(sd_ble_gatts_sys_attr_set(m_conn_handle, NULL, 0, 0));
+      APP_ERROR_CHECK(sd_ble_gatts_sys_attr_set(m_conn_handle, nullptr, 0, 0));
       break;
 
     case BLE_GATTC_EVT_TIMEOUT:
@@ -154,7 +154,7 @@ static void InitGapParams() {
 }
 
 static void InitGatt(void) {
-  APP_ERROR_CHECK(nrf_ble_gatt_init(&m_gatt, NULL));
+  APP_ERROR_CHECK(nrf_ble_gatt_init(&m_gatt, nullptr));
 }
 
 // Initializes the SoftDevice and the BLE event interrupt.
@@ -170,7 +170,7 @@ static void InitBleStack() {
   APP_ERROR_CHECK(nrf_sdh_ble_enable(&ram_start));
 
   // Register a handler for BLE events.
-  NRF_SDH_BLE_OBSERVER(m_ble_observer, APP_BLE_OBSERVER_PRIO, BleEventHandler, NULL);
+  NRF_SDH_BLE_OBSERVER(m_ble_observer, APP_BLE_OBSERVER_PRIO, BleEventHandler, nullptr);
 }
 
 // Function for initializing the Advertising functionality.
@@ -202,7 +202,7 @@ static void InitBleStack() {
   adv_params.primary_phy = BLE_GAP_PHY_1MBPS;
   adv_params.duration = APP_ADV_DURATION;
   adv_params.properties.type = BLE_GAP_ADV_TYPE_CONNECTABLE_SCANNABLE_UNDIRECTED;
-  adv_params.p_peer_addr = NULL;
+  adv_params.p_peer_addr = nullptr;
   adv_params.filter_policy = BLE_GAP_ADV_FP_ANY;
   adv_params.interval = APP_ADV_INTERVAL;
 
@@ -233,7 +233,7 @@ static void InitServices() {
 static void InitConnectionParams() {
   ble_conn_params_init_t cp_init;
   memset(&cp_init, 0, sizeof(cp_init));
-  cp_init.p_conn_params = NULL;
+  cp_init.p_conn_params = nullptr;
   cp_init.first_conn_params_update_delay = FIRST_CONN_PARAMS_UPDATE_DELAY;
   cp_init.next_conn_params_update_delay = NEXT_CONN_PARAMS_UPDATE_DELAY;
   cp_init.max_conn_params_update_count = MAX_CONN_PARAMS_UPDATE_COUNT;
