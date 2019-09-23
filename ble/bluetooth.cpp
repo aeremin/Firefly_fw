@@ -130,16 +130,6 @@ void BluetoothLowEnergy::InitBleStack() {
 
   // Enable BLE stack.
   APP_ERROR_CHECK(nrf_sdh_ble_enable(&ram_start));
-
-
-//NRF_SECTION_SET_ITEM_REGISTER(sdh_ble_observers, BLE_LBS_BLE_OBSERVER_PRIO, static nrf_sdh_ble_evt_observer_t m_lbs_obs) = {                                                                                                   
-//    /* handler = */ ble_lbs_on_ble_evt,                                                                          
-//    /* p_context = */ &m_lbs                                                                      
-//};
-//NRF_SECTION_SET_ITEM_REGISTER(sdh_ble_observers, NRF_BLE_GATT_BLE_OBSERVER_PRIO, static nrf_sdh_ble_evt_observer_t m_gatt_obs) = {                                                                                                   
-//    /* handler = */ nrf_ble_gatt_on_ble_evt,                                                                          
-//    /* p_context = */ &m_gatt                                                                      
-//};
   
   // Register a handler for BLE events.
   // All system observers have priority 1 or 2 (as defined in sdk_config.h).
