@@ -79,9 +79,9 @@ void Cc1101::WriteConfigurationRegister(uint8_t reg, uint8_t value, uint8_t* sta
 }
 
 uint8_t Cc1101::ReadRegister(uint8_t reg, uint8_t* status) {
-  uint8_t tx[] = {(reg | CC_READ_FLAG), 0x00};
+  uint8_t tx = reg | CC_READ_FLAG;
   uint8_t rx[] = {0, 0};
-  APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi_, tx, 2, rx, 2));
+  APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi_, &tx, 1, rx, 2));
   if (status) *status = rx[0];
   return rx[1];
 }

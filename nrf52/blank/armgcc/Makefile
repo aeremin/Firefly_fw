@@ -27,6 +27,7 @@ SRC_FILES += \
   $(NRF_SDK_PATH)/components/libraries/util/nrf_assert.c \
   $(NRF_SDK_PATH)/components/libraries/atomic/nrf_atomic.c \
   $(NRF_SDK_PATH)/components/libraries/balloc/nrf_balloc.c \
+  $(NRF_SDK_PATH)/components/libraries/experimental_section_vars/nrf_section_iter.c \
   $(NRF_SDK_PATH)/external/fprintf/nrf_fprintf.c \
   $(NRF_SDK_PATH)/external/fprintf/nrf_fprintf_format.c \
   $(NRF_SDK_PATH)/components/libraries/memobj/nrf_memobj.c \
@@ -43,9 +44,12 @@ SRC_FILES += \
   $(NRF_SDK_PATH)/modules/nrfx/drivers/src/nrfx_uart.c \
   $(NRF_SDK_PATH)/modules/nrfx/drivers/src/nrfx_clock.c \
   $(NRF_SDK_PATH)/modules/nrfx/drivers/src/nrfx_uarte.c \
+  $(NRF_SDK_PATH)/modules/nrfx/drivers/src/nrfx_pwm.c \
   $(NRF_SDK_PATH)/components/libraries/bsp/bsp.c \
   $(PROJ_DIR)/main.cpp \
   $(PROJ_DIR)/cc1101/cc1101.cpp \
+  $(PROJ_DIR)/ble/bluetooth.cpp \
+  $(PROJ_DIR)/rgb_led.cpp \
   $(NRF_SDK_PATH)/external/segger_rtt/SEGGER_RTT.c \
   $(NRF_SDK_PATH)/external/segger_rtt/SEGGER_RTT_Syscalls_GCC.c \
   $(NRF_SDK_PATH)/external/segger_rtt/SEGGER_RTT_printf.c \
@@ -61,9 +65,23 @@ SRC_FILES += \
   $(NRF_SDK_PATH)/external/freertos/source/stream_buffer.c \
   $(NRF_SDK_PATH)/external/freertos/source/tasks.c \
   $(NRF_SDK_PATH)/external/freertos/source/timers.c \
+  $(NRF_SDK_PATH)/components/ble/ble_services/ble_lbs/ble_lbs.c \
+  $(NRF_SDK_PATH)/components/ble/common/ble_advdata.c \
+  $(NRF_SDK_PATH)/components/ble/common/ble_conn_params.c \
+  $(NRF_SDK_PATH)/components/ble/common/ble_srv_common.c \
+  $(NRF_SDK_PATH)/components/ble/nrf_ble_gatt/nrf_ble_gatt.c \
+  $(NRF_SDK_PATH)/components/softdevice/common/nrf_sdh.c \
+  $(NRF_SDK_PATH)/components/softdevice/common/nrf_sdh_ble.c \
 
 # Include folders common to all targets
 INC_FOLDERS += \
+  $(NRF_SDK_PATH)/components/ble/ble_advertising \
+  $(NRF_SDK_PATH)/components/ble/common \
+  $(NRF_SDK_PATH)/components/ble/ble_services/ble_lbs \
+  $(NRF_SDK_PATH)/components/softdevice/common \
+  $(NRF_SDK_PATH)/components/ble/nrf_ble_gatt \
+  $(NRF_SDK_PATH)/components/softdevice/s132/headers \
+  $(NRF_SDK_PATH)/components/softdevice/s132/headers/nrf52 \
   $(NRF_SDK_PATH)/components \
   $(NRF_SDK_PATH)/modules/nrfx/mdk \
   $(NRF_SDK_PATH)/components/libraries/scheduler \
@@ -73,6 +91,7 @@ INC_FOLDERS += \
   $(NRF_SDK_PATH)/components/toolchain/cmsis/include \
   $(NRF_SDK_PATH)/components/libraries/util \
   ../config \
+  ../../.. \
   $(NRF_SDK_PATH)/components/libraries/balloc \
   $(NRF_SDK_PATH)/components/libraries/ringbuf \
   $(NRF_SDK_PATH)/modules/nrfx/hal \
@@ -107,7 +126,7 @@ OPT = -O3 -g3
 
 # C flags common to all targets
 CFLAGS += $(OPT)
-CFLAGS += -DBOARD_PCA10040
+CFLAGS += -DBOARD_CUSTOM
 CFLAGS += -DCONFIG_GPIO_AS_PINRESET
 CFLAGS += -DFLOAT_ABI_HARD
 CFLAGS += -DNRF52
@@ -115,6 +134,12 @@ CFLAGS += -DNRF52832_XXAA
 CFLAGS += -DNRF52_PAN_74
 CFLAGS += -DSWI_DISABLE0
 CFLAGS += -DFREERTOS
+CFLAGS += -DSWI_DISABLE0
+CFLAGS += -DFREERTOS
+CFLAGS += -DNRF_SD_BLE_API_VERSION=6
+CFLAGS += -DS132
+CFLAGS += -DSOFTDEVICE_PRESENT
+
 CFLAGS += -mcpu=cortex-m4
 CFLAGS += -mthumb -mabi=aapcs
 CFLAGS += -Wall
@@ -126,6 +151,7 @@ CFLAGS += -fno-builtin -fshort-enums
 # C++ flags common to all targets
 CXXFLAGS += $(OPT)
 CXXFLAGS += -std=gnu++14
+CXXFLAGS += -fno-threadsafe-statics
 
 # Assembler flags common to all targets
 ASMFLAGS += -g3

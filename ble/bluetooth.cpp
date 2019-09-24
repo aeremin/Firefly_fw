@@ -15,6 +15,10 @@ BluetoothLowEnergy::BleCallback BluetoothLowEnergy::ble_callback = nullptr;
 ble_lbs_t BluetoothLowEnergy::ble_led_button_service_;
 nrf_ble_gatt_t BluetoothLowEnergy::gatt_;
 
+void GlobalBleEventHandler(ble_evt_t const* p_ble_evt, void* p_context) {
+  reinterpret_cast<BluetoothLowEnergy*>(p_context)->BleEventHandler(p_ble_evt);
+}
+
 BluetoothLowEnergy::BluetoothLowEnergy()
 : conn_handle_(BLE_CONN_HANDLE_INVALID),
   adv_handle_(BLE_GAP_ADV_SET_HANDLE_NOT_SET),
@@ -30,14 +34,14 @@ BluetoothLowEnergy::BluetoothLowEnergy()
   }) {
   NRF_SDH_BLE_OBSERVER(m_lbs_obs, BLE_LBS_BLE_OBSERVER_PRIO, ble_lbs_on_ble_evt, &BluetoothLowEnergy::ble_led_button_service_);
   NRF_SDH_BLE_OBSERVER(m_gatt_obs, NRF_BLE_GATT_BLE_OBSERVER_PRIO, nrf_ble_gatt_on_ble_evt, &BluetoothLowEnergy::gatt_);
+  // Register a handler for BLE events.
+  // All system observers have priority 1 or 2 (as defined in sdk_config.h).
+  const uint8_t observer_priority = 3;
+  NRF_SDH_BLE_OBSERVER(m_ble_observer, observer_priority, GlobalBleEventHandler, this);
 }
 
 void BluetoothLowEnergy::StartAdvertising() {
   APP_ERROR_CHECK(sd_ble_gap_adv_start(adv_handle_, connection_configuraion_tag_));
-}
-
-static void GlobalBleEventHandler(ble_evt_t const* p_ble_evt, void* p_context) {
-  reinterpret_cast<BluetoothLowEnergy*>(p_context)->BleEventHandler(p_ble_evt);
 }
 
 void BluetoothLowEnergy::BleEventHandler(ble_evt_t const* p_ble_evt) {
@@ -130,11 +134,6 @@ void BluetoothLowEnergy::InitBleStack() {
 
   // Enable BLE stack.
   APP_ERROR_CHECK(nrf_sdh_ble_enable(&ram_start));
-  
-  // Register a handler for BLE events.
-  // All system observers have priority 1 or 2 (as defined in sdk_config.h).
-  const uint8_t observer_priority = 3;
-  NRF_SDH_BLE_OBSERVER(m_ble_observer, observer_priority, GlobalBleEventHandler, this);
 }
 
 // Function for initializing the Advertising functionality.
