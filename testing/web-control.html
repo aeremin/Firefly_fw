@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<button onclick="Connect()">Connect</button>
+<button onclick="Disconnect()">Disconnect</button>
+<button onclick="Write1()">Write 1</button>
+<button onclick="Write0()">Write 0</button>
+
+<script>
+var gDevice = undefined;
+var gServer = undefined;
+function Connect() {
+  navigator.bluetooth.requestDevice({
+    filters: [{ services: ['00001523-1212-efde-1523-785feabcd123'] }],
+  })
+  .then(device => {
+    device.gatt.connect().then(server => gServer = server);
+    gDevice = device
+  })
+  .catch(error => console.log(error));
+}
+function Disconnect() {
+  gDevice.gatt.disconnect();
+  gDevice = undefined;
+  gServer = undefined;
+}
+function Write1() {
+    gServer.getPrimaryService('00001523-1212-efde-1523-785feabcd123')
+        .then(service => service.getCharacteristic('00001525-1212-efde-1523-785feabcd123'))
+        .then(characteristic => characteristic.writeValue(Uint8Array.of(1)))
+        .catch(error => console.log(error));
+}
+function Write0() {
+    gServer.getPrimaryService('00001523-1212-efde-1523-785feabcd123')
+        .then(service => service.getCharacteristic('00001525-1212-efde-1523-785feabcd123'))
+        .then(characteristic => characteristic.writeValue(Uint8Array.of(0)))
+        .catch(error => console.log(error));
+}
+</script>
+
+</body>
+</html>
