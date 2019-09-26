@@ -16,7 +16,7 @@ ble_lbs_t BluetoothLowEnergy::ble_led_button_service_;
 nrf_ble_gatt_t BluetoothLowEnergy::gatt_;
 
 void GlobalBleEventHandler(ble_evt_t const* p_ble_evt, void* p_context) {
-  reinterpret_cast<BluetoothLowEnergy*>(p_context)->BleEventHandler(p_ble_evt);
+  BluetoothLowEnergy::Instance().BleEventHandler(p_ble_evt);
 }
 
 BluetoothLowEnergy::BluetoothLowEnergy()
@@ -42,6 +42,12 @@ BluetoothLowEnergy::BluetoothLowEnergy()
 
 void BluetoothLowEnergy::StartAdvertising() {
   APP_ERROR_CHECK(sd_ble_gap_adv_start(adv_handle_, connection_configuraion_tag_));
+}
+
+void BluetoothLowEnergy::SetButtonState(uint8_t state) {
+  if (conn_handle_ != BLE_CONN_HANDLE_INVALID) {
+    APP_ERROR_CHECK(ble_lbs_on_button_change(conn_handle_, &ble_led_button_service_, state));
+  }
 }
 
 void BluetoothLowEnergy::BleEventHandler(ble_evt_t const* p_ble_evt) {

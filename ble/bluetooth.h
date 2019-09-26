@@ -9,9 +9,16 @@
 
 class BluetoothLowEnergy {
 public:
-  BluetoothLowEnergy();
+  static BluetoothLowEnergy& Instance() {
+    static BluetoothLowEnergy instance;
+    return instance;
+  }
+  
   typedef void (*BleCallback)(bool);
   void Init(BleCallback callback);
+
+  // TODO: Should be moved to some dedicated Service class.
+  void SetButtonState(uint8_t state);
 
   // Those are only exposed as public, as C-style callbacks need access to them.
   // Don't use them directly.
@@ -20,6 +27,8 @@ public:
   static ble_lbs_t ble_led_button_service_;
   static nrf_ble_gatt_t gatt_;
 private:
+  BluetoothLowEnergy();
+
   void InitBleStack();
   void InitGapParams();
   void InitGatt();
