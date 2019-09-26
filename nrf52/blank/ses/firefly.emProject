@@ -138,6 +138,7 @@
       </folder>
       <file file_name="../../../rgb_led.cpp" />
       <file file_name="../../../rgb_led.h" />
+      <file file_name="../../../FreeRTOSConfig.h" />
     </folder>
   </project>
   <configuration
