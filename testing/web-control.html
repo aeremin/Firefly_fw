@@ -37,7 +37,9 @@ function Connect() {
       })
       .catch(error => { console.log(error); });
 
-
+      if (gUnsub) {
+        gUnsub();
+      }
       gUnsub = doc.onSnapshot(function(doc) {
           console.log("Current data: ", doc.data());
           WriteBle(doc.data().color);
