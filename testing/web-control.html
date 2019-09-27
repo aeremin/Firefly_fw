@@ -1,17 +1,29 @@
 <!DOCTYPE html>
 <html>
 <body>
-
+<div id="app">
 <button onclick="Connect()">Connect</button>
 <button onclick="Disconnect()">Disconnect</button>
-<button onclick="Write(1)">Write 1</button>
-<button onclick="Write(0)">Write 0</button>
+<button onclick="SetColor(1)">Write 1</button>
+<button onclick="SetColor(0)">Write 0</button>
+<div>Button value: {{ buttonValue }}</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 <script src="https://www.gstatic.com/firebasejs/6.6.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/6.6.1/firebase-firestore.js"></script>
 <script>
 var gDevice = undefined;
 var gServer = undefined;
 var gUnsub = undefined;
+
+var vm = new Vue({
+  el: '#app',
+  data: {
+    input: '# hello',
+    buttonValue: 0,
+  }
+})
+
 
 firebase.initializeApp({
   projectId: 'larp-hardware'
@@ -31,8 +43,7 @@ function Connect() {
       .then(service => service.getCharacteristic('00001524-1212-efde-1523-785feabcd123'))
       .then(characteristic => characteristic.startNotifications())
       .then(characteristic => {
-        characteristic.addEventListener('characteristicvaluechanged',
-                                        handleCharacteristicValueChanged);
+        characteristic.addEventListener('characteristicvaluechanged', HandleButtonStateChanged);
         console.log('Notifications have been started.');
       })
       .catch(error => { console.log(error); });
@@ -40,10 +51,7 @@ function Connect() {
       if (gUnsub) {
         gUnsub();
       }
-      gUnsub = doc.onSnapshot(function(doc) {
-          console.log("Current data: ", doc.data());
-          WriteBle(doc.data().color);
-      });
+      gUnsub = doc.onSnapshot(onFirestoreChange);
     });
     gDevice = device
   })
@@ -58,8 +66,20 @@ function Disconnect() {
   gUnsub = undefined;
 }
 
-function Write(value) {
-  doc.set({color: value});
+function SetColor(value) {
+  doc.set({color: value}, {merge: true});
+}
+
+function HandleButtonStateChanged(event) {
+  var value = event.target.value.getUint8(0);
+  doc.set({buttonValue: value}, {merge: true});
+}
+
+function onFirestoreChange(doc) {
+  var data = doc.data();
+  console.log("Current data: ", data);
+  WriteBle(data.color);
+  vm.buttonValue = data.buttonValue;
 }
 
 function WriteBle(value) {
@@ -71,11 +91,6 @@ function WriteBle(value) {
     }
 }
 
-
-function handleCharacteristicValueChanged(event) {
-  var value = event.target.value;
-  console.log('Received ' + value.getUint8(0));
-}
 </script>
 
 </body>
