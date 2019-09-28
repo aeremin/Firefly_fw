@@ -11,7 +11,7 @@ function discoverService(adapter: Adapter, device: Device, serviceUuid: string):
   return new Promise((resolve, reject) => {
     adapter.getServices(device.instanceId, (err, services) => {
       if (err) {
-        reject(Error(`Error discovering the service: ${err}.`));
+        reject(Error(`Error discovering the service: ${JSON.stringify(err)}.`));
         return;
       }
 
@@ -32,7 +32,7 @@ function discoverharacteristic(adapter: Adapter, service: Service,
   return new Promise((resolve, reject) => {
     adapter.getCharacteristics(service.instanceId, (err, characteristics) => {
       if (err) {
-        reject(Error(`Error discovering characteristics: ${err}.`));
+        reject(Error(`Error discovering characteristics: ${JSON.stringify(err)}.`));
         return;
       }
 
@@ -52,7 +52,7 @@ function discoverCharacteristicDescriptor(adapter: Adapter, characteristic: Char
   return new Promise((resolve, reject) => {
     adapter.getDescriptors(characteristic.instanceId, (err, descriptors) => {
       if (err) {
-        reject(Error(`Error discovering the characteristic's descriptor: ${err}.`));
+        reject(Error(`Error discovering the characteristic's descriptor: ${JSON.stringify(err)}.`));
         return;
       }
 
@@ -72,7 +72,7 @@ function subscribeToCharacteristicNotifications(adapter: Adapter, descriptor: De
   return new Promise((resolve, reject) => {
     adapter.writeDescriptorValue(descriptor.instanceId, [1, 0], false, (err) => {
       if (err) {
-        reject(`Error enabling notifications on the characteristic: ${err}.`);
+        reject(`Error enabling notifications on the characteristic: ${JSON.stringify(err)}.`);
       } else {
         console.log("Notifications turned on for characteristic.");
         resolve();
@@ -102,7 +102,7 @@ function connectToPeripheral(adapter: Adapter, connectToAddress: string): Promis
 
     adapter.connect(connectToAddress, options, (err) => {
       if (err) {
-        reject(Error(`Error connecting to target device: ${err}.`));
+        reject(Error(`Error connecting to target device: ${JSON.stringify(err)}.`));
       } else {
         resolve();
       }
@@ -123,7 +123,7 @@ function startScan(adapter: Adapter): Promise<void> {
 
     adapter.startScan(scanParameters, (err) => {
       if (err) {
-        reject(new Error(`Error starting scanning: ${err}.`));
+        reject(new Error(`Error starting scanning: ${JSON.stringify(err)}.`));
       } else {
         resolve();
       }
@@ -192,7 +192,7 @@ function openAdapter(adapter: Adapter): Promise<void> {
 
     adapter.open({ baudRate, logLevel: "error" }, (err) => {
       if (err) {
-        reject(Error(`Error opening adapter: ${err}.`));
+        reject(Error(`Error opening adapter: ${JSON.stringify(err)}.`));
       } else {
         resolve();
       }
