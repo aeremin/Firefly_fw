@@ -2,3 +2,4 @@
 *.jlink
 nrf52/blank/ses/firefly.emSession
 _build
+node_modules

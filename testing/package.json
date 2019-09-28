@@ -1,0 +1,14 @@
+{
+  "name": "firefly_fw",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "ts-node test.ts"
+  },
+  "dependencies": {
+    "pc-ble-driver-js": "^2.6.1",
+    "ts-node": "^8.4.1",
+    "typescript": "^3.6.3"
+  }
+}
