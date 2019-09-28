@@ -75,7 +75,7 @@ void ButtonsInit() {
 void OnBle(bool on) {
   // FIXME: gColor should probably be mutex-protected.
   gColor = on ? MagicPathRadioPacket{/*r = */30, /*g = */0, /*b = */30} : MagicPathRadioPacket{/*r = */0, /*g = */30, /*b = */0};
-  led.SetColor(8 * gColor.r, 8 * gColor.g, 8 * gColor.b);
+  led.SetColor(2 * gColor.r, 2 * gColor.g, 2 * gColor.b);
 }
 
 int main(void) {
