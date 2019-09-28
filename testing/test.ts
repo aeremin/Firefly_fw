@@ -1,4 +1,5 @@
-import { AdapterFactory, Adapter, Device, Service, Characteristic, Descriptor, ConnectionOptions, ScanParameters } from "pc-ble-driver-js";
+import { Adapter, AdapterFactory, Characteristic, ConnectionOptions,
+  Descriptor, Device, ScanParameters, Service } from "pc-ble-driver-js";
 
 const gAdapter = AdapterFactory.getInstance().createAdapter("v3", "COM18", "");
 
@@ -26,7 +27,8 @@ function discoverService(adapter: Adapter, device: Device, serviceUuid: string):
   });
 }
 
-function discoverharacteristic(adapter: Adapter, service: Service, characteristicUuid: string): Promise<Characteristic> {
+function discoverharacteristic(adapter: Adapter, service: Service,
+                               characteristicUuid: string): Promise<Characteristic> {
   return new Promise((resolve, reject) => {
     adapter.getCharacteristics(service.instanceId, (err, characteristics) => {
       if (err) {
@@ -68,7 +70,7 @@ function discoverCharacteristicDescriptor(adapter: Adapter, characteristic: Char
 
 function subscribeToCharacteristicNotifications(adapter: Adapter, descriptor: Descriptor): Promise<void> {
   return new Promise((resolve, reject) => {
-    adapter.writeDescriptorValue(descriptor.instanceId, [1, 0], false, err => {
+    adapter.writeDescriptorValue(descriptor.instanceId, [1, 0], false, (err) => {
       if (err) {
         reject(`Error enabling notifications on the characteristic: ${err}.`);
       } else {
@@ -98,7 +100,7 @@ function connectToPeripheral(adapter: Adapter, connectToAddress: string): Promis
       },
     };
 
-    adapter.connect(connectToAddress, options, err => {
+    adapter.connect(connectToAddress, options, (err) => {
       if (err) {
         reject(Error(`Error connecting to target device: ${err}.`));
       } else {
@@ -119,7 +121,7 @@ function startScan(adapter: Adapter): Promise<void> {
       timeout: 0,
     };
 
-    adapter.startScan(scanParameters, err => {
+    adapter.startScan(scanParameters, (err) => {
       if (err) {
         reject(new Error(`Error starting scanning: ${err}.`));
       } else {
@@ -130,10 +132,15 @@ function startScan(adapter: Adapter): Promise<void> {
 }
 
 function addAdapterListeners(adapter: Adapter): void {
-  adapter.on("logMessage", (severity, message) => { if (Number(severity) > 3) console.log(`${message}.`); });
-  adapter.on("error", error => { console.error(`error: ${JSON.stringify(error, null, 1)}.`); });
-  adapter.on("deviceConnected", async device => {
-    try {console.log(`Device ${device.address}/${device.addressType} connected.`);
+  adapter.on("logMessage", (severity, message) => {
+    if (Number(severity) > 3) {
+      console.log(`${message}.`);
+    }
+  });
+  adapter.on("error", (error) => { console.error(`error: ${JSON.stringify(error, null, 1)}.`); });
+  adapter.on("deviceConnected", async (device) => {
+    try {
+      console.log(`Device ${device.address}/${device.addressType} connected.`);
       const service = await discoverService(adapter, device, LED_BUTTON_SERVICE_UUID);
       console.log("Discovered service.");
       const characteristic = await discoverharacteristic(adapter, service, BUTTON_CHARACTERISTIC_UUID);
@@ -141,13 +148,13 @@ function addAdapterListeners(adapter: Adapter): void {
       const descriptor = await discoverCharacteristicDescriptor(adapter, characteristic);
       console.log("Discovered the descriptor");
       await subscribeToCharacteristicNotifications(adapter, descriptor);
-    } catch(error) {
+    } catch (error) {
       console.error(error);
       process.exit(1);
     }
   });
 
-  adapter.on("deviceDisconnected", async device => {
+  adapter.on("deviceDisconnected", async (device) => {
     console.log(`Device ${device.address} disconnected.`);
     try {
       await startScan(adapter);
@@ -157,7 +164,7 @@ function addAdapterListeners(adapter: Adapter): void {
     }
   });
 
-  adapter.on("deviceDiscovered", async device => {
+  adapter.on("deviceDiscovered", async (device) => {
     if (device.name == "Nordic_Blinky") {
       try {
         await connectToPeripheral(adapter, device.address);
@@ -173,7 +180,7 @@ function addAdapterListeners(adapter: Adapter): void {
     process.exit(1);
   });
 
-  adapter.on("characteristicValueChanged", characteristic => {
+  adapter.on("characteristicValueChanged", (characteristic) => {
     console.log(`Value of characteristic with UUID ${characteristic.uuid} is ${characteristic.value}.`);
   });
 }
@@ -183,7 +190,7 @@ function openAdapter(adapter: Adapter): Promise<void> {
     const baudRate = 1000000;
     console.log(`Opening adapter with ID: ${adapter.instanceId} and baud rate: ${baudRate}...`);
 
-    adapter.open({ baudRate, logLevel: "error" }, err => {
+    adapter.open({ baudRate, logLevel: "error" }, (err) => {
       if (err) {
         reject(Error(`Error opening adapter: ${err}.`));
       } else {
