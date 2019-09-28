@@ -48,11 +48,18 @@ static void RadioTask(void*) {
 
 void ButtonEventHandler(uint8_t pin_no, uint8_t button_action)
 {
+  // We are only interested in button presses
+  if (!button_action) return;
+
+  // TODO: For whatever reason, adding logging here leads to hard fault. So no logging :(
   switch (pin_no)
   {
     case BUTTON_1:
-      // TODO: For whatever reason, adding logging here leads to hard fault. So no logging :(
-      BluetoothLowEnergy::Instance().SetButtonState(button_action);
+      BluetoothLowEnergy::Instance().SetButtonState(1);
+      break;
+
+    case BUTTON_2:
+      BluetoothLowEnergy::Instance().SetButtonState(0);
       break;
 
     default:
@@ -65,7 +72,8 @@ void ButtonEventHandler(uint8_t pin_no, uint8_t button_action)
 void ButtonsInit() {
   static app_button_cfg_t buttons[] =
   {
-      {BUTTON_1, false, BUTTON_PULL, ButtonEventHandler}
+      {BUTTON_1, false, BUTTON_PULL, ButtonEventHandler},
+      {BUTTON_2, false, BUTTON_PULL, ButtonEventHandler}
   };
   APP_ERROR_CHECK(app_button_init(buttons, ARRAY_SIZE(buttons), APP_TIMER_TICKS(50)));
   APP_ERROR_CHECK(app_button_enable());
