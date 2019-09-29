@@ -9,6 +9,8 @@ export class BluetoothLowEnergy {
     listener: (deviceAddress: string, characteristic: Characteristic) => void}> = [];
   private adapter: Adapter = AdapterFactory.getInstance().createAdapter("v3", "COM18", "");
   private knownCharacteristics: { [deviceAddress: string]: Characteristic[] } = {};
+  private connectListener: (deviceAddress: string) => void = undefined;
+  private disconnectListener: (deviceAddress: string) => void = undefined;
 
   public addCharacteristicListener(
     serviceUuid: string,
@@ -17,6 +19,14 @@ export class BluetoothLowEnergy {
   ) {
     this.listeners.push({serviceUuid: serviceUuid.toLowerCase(),
       characteristicUuid: characteristicUuid.toLowerCase(), listener});
+  }
+
+  public setConnectListener(connectListener: (deviceAddress: string) => void) {
+    this.connectListener = connectListener;
+  }
+
+  public setDisconnectListener(disconnectListener: (deviceAddress: string) => void) {
+    this.disconnectListener = disconnectListener;
   }
 
   public async startScanningAndReporting() {
@@ -78,6 +88,9 @@ export class BluetoothLowEnergy {
             await this.subscribeToCharacteristicNotifications(descriptor);
           }
         }
+        if (this.connectListener) {
+          this.connectListener(device.address);
+        }
       } catch (error) {
         console.error(error);
       }
@@ -86,6 +99,9 @@ export class BluetoothLowEnergy {
     this.adapter.on("deviceDisconnected", async (device) => {
       console.log(`Device ${device.address} disconnected.`);
       delete this.knownCharacteristics[device.address];
+      if (this.disconnectListener) {
+        this.disconnectListener(device.address);
+      }
       try {
         await this.startScan();
         console.log("Successfully initiated the scanning procedure.");
