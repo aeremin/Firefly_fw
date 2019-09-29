@@ -6,13 +6,14 @@ const BLE_UUID_CCCD = "2902";
 export class BluetoothLowEnergy {
   private listeners: Array<{
     serviceUuid: string, characteristicUuid: string,
-    listener: (characteristic: Characteristic) => void}> = [];
+    listener: (deviceAddress: string, characteristic: Characteristic) => void}> = [];
   private adapter: Adapter = AdapterFactory.getInstance().createAdapter("v3", "COM18", "");
+  private knownCharacteristics: { [deviceAddress: string]: Characteristic[] } = {};
 
   public addCharacteristicListener(
     serviceUuid: string,
     characteristicUuid: string,
-    listener: (characteristic: Characteristic) => void,
+    listener: (deviceAddress: string, characteristic: Characteristic) => void,
   ) {
     this.listeners.push({serviceUuid: serviceUuid.toLowerCase(),
       characteristicUuid: characteristicUuid.toLowerCase(), listener});
@@ -26,6 +27,29 @@ export class BluetoothLowEnergy {
     console.log("Scanning.");
   }
 
+  public async writeCharacteristic(deviceAddress: string, serviceUuid: string,
+                                   characteristicUuid: string, value: number[]): Promise<void> {
+    const device = this.knownCharacteristics[deviceAddress];
+    if (device == undefined) {
+      throw new Error("No such device connected");
+    }
+    const characteristic = device.find(
+      (ch) => ch.uuid.toLowerCase() == characteristicUuid.toLowerCase());
+    if (characteristic == undefined) {
+      throw new Error("No such characteristic found");
+    }
+
+    return new Promise((resolve, reject) => {
+      this.adapter.writeCharacteristicValue(characteristic.instanceId, value, true, (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+  }
+
   private addAdapterListeners(): void {
     this.adapter.on("logMessage", (severity, message) => {
       if (Number(severity) > 3) {
@@ -36,12 +60,14 @@ export class BluetoothLowEnergy {
     this.adapter.on("deviceConnected", async (device) => {
       try {
         console.log(`Device ${device.address}/${device.addressType} connected.`);
+        this.knownCharacteristics[device.address] = [];
         const services = await this.discoverServices(device);
         console.log("Discovered services.");
         const relevantServices = services.filter((s) =>
           this.listeners.find((l) => l.serviceUuid == s.uuid.toLowerCase()) != undefined);
         for (const service of relevantServices) {
           const characteristics = await this.discoverharacteristics(service);
+          this.knownCharacteristics[device.address].push(...characteristics);
           const relevantCharacteristics = characteristics.filter((ch) =>
             this.listeners.find((l) => l.serviceUuid == service.uuid.toLowerCase() &&
                                        l.characteristicUuid == ch.uuid.toLowerCase()) != undefined);
@@ -59,6 +85,7 @@ export class BluetoothLowEnergy {
 
     this.adapter.on("deviceDisconnected", async (device) => {
       console.log(`Device ${device.address} disconnected.`);
+      delete this.knownCharacteristics[device.address];
       try {
         await this.startScan();
         console.log("Successfully initiated the scanning procedure.");
@@ -86,9 +113,16 @@ export class BluetoothLowEnergy {
     this.adapter.on("characteristicValueChanged", (characteristic) => {
       // TODO: Also confirm that this is relevant service.
       const listener = this.listeners.find((l) => l.characteristicUuid == characteristic.uuid.toLowerCase());
-      if (listener != undefined) {
-        listener.listener(characteristic);
+      if (listener == undefined) {
+        return;
       }
+      for (const deviceAddress in this.knownCharacteristics) {
+        if (this.knownCharacteristics[deviceAddress].find((ch) => ch.instanceId == characteristic.instanceId)) {
+          listener.listener(deviceAddress, characteristic);
+          return;
+        }
+      }
+      console.error("Corresponding device not found");
     });
   }
 
