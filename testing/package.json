@@ -7,6 +7,7 @@
     "start": "ts-node test.ts"
   },
   "dependencies": {
+    "@google-cloud/firestore": "^2.3.0",
     "pc-ble-driver-js": "^2.6.1",
     "ts-node": "^8.4.1",
     "typescript": "^3.6.3"

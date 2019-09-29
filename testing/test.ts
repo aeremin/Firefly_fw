@@ -1,16 +1,25 @@
 import { BluetoothLowEnergy } from "./ble";
 
-
 const LED_BUTTON_SERVICE_UUID = "000015231212efde1523785feabcd123";
 const BUTTON_CHARACTERISTIC_UUID = "000015241212efde1523785feabcd123";
 const LED_CHARACTERISTIC_UUID = "000015251212efde1523785feabcd123";
 
 const ble = new BluetoothLowEnergy();
 
+import { Firestore } from "@google-cloud/firestore";
+
+process.env.GCLOUD_PROJECT = "larp-hardware";
+const db = new Firestore();
+
 async function main(): Promise<void> {
   ble.addCharacteristicListener(LED_BUTTON_SERVICE_UUID, BUTTON_CHARACTERISTIC_UUID,
-    (deviceAddress, characteristic) => {
+    async (deviceAddress, characteristic) => {
     console.log(`New characteristic value for ${deviceAddress} is ${characteristic.value}`);
+
+    const docRef = db.collection("firefly").doc(deviceAddress);
+    await docRef.set({
+        buttonValue: characteristic.value[0],
+      }, {merge: true});
   });
   await ble.startScanningAndReporting();
   setInterval(() => {
