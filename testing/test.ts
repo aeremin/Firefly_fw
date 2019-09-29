@@ -10,7 +10,7 @@ import { Firestore } from "@google-cloud/firestore";
 
 process.env.GCLOUD_PROJECT = "larp-hardware";
 const db = new Firestore();
-
+const fireflyCollection = db.collection("firefly");
 const unsubs: {[deviceAddress: string]: () => void} = {};
 
 async function main(): Promise<void> {
@@ -18,22 +18,23 @@ async function main(): Promise<void> {
     async (deviceAddress, characteristic) => {
     console.log(`New characteristic value for ${deviceAddress} is ${characteristic.value}`);
 
-    const docRef = db.collection("firefly").doc(deviceAddress);
-    await docRef.set({
+    await fireflyCollection.doc(deviceAddress).set({
         buttonValue: characteristic.value[0],
       }, {merge: true});
   });
 
-  ble.setConnectListener((deviceAddress) => {
-    unsubs[deviceAddress] = db.collection("firefly").doc(deviceAddress).onSnapshot((snapshot) => {
+  ble.setConnectListener(async (deviceAddress) => {
+    unsubs[deviceAddress] = fireflyCollection.doc(deviceAddress).onSnapshot((snapshot) => {
       ble.writeCharacteristic(deviceAddress, LED_BUTTON_SERVICE_UUID, LED_CHARACTERISTIC_UUID, [snapshot.data().color])
         .then(() => console.log("Write success!"))
         .catch((err) => console.log("Write fail! " + JSON.stringify(err)));
     });
+    await fireflyCollection.doc(deviceAddress).set({connected: true}, {merge: true});
   });
 
-  ble.setDisconnectListener((deviceAddress) => {
+  ble.setDisconnectListener(async (deviceAddress) => {
     unsubs[deviceAddress]();
+    await fireflyCollection.doc(deviceAddress).set({connected: false}, {merge: true});
   });
 
   await ble.startScanningAndReporting();
