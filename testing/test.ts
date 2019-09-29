@@ -17,7 +17,7 @@ async function main(): Promise<void> {
     v = 1 - v;
     ble.writeCharacteristic("F0:78:E3:7B:D4:FD", LED_BUTTON_SERVICE_UUID, LED_CHARACTERISTIC_UUID, [v])
       .then(() => console.log("Write success!"))
-      .catch((err) => console.log("Write fail! " + err));
+      .catch((err) => console.log("Write fail! " + JSON.stringify(err)));
   }, 3000);
 }
 
