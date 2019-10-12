@@ -189,8 +189,8 @@ export class BluetoothLowEnergy {
           timeout: 0,
         },
         connParams: {
-          min_conn_interval: 7.5,
-          max_conn_interval: 7.5,
+          min_conn_interval: 100,
+          max_conn_interval: 200,
           slave_latency: 0,
           conn_sup_timeout: 4000,
         },
