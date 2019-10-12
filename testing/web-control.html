@@ -19,7 +19,8 @@
 firebase.initializeApp({
   projectId: 'larp-hardware'
 });
-var db = firebase.firestore();
+var db = firebase.firestore()
+db.enablePersistence();
 
 var vue = new Vue({
   el: '#app',
