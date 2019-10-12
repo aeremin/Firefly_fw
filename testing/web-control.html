@@ -2,87 +2,89 @@
 <html>
 <body>
 <div id="app">
-<button onclick="Connect()">Connect</button>
-<button onclick="Disconnect()">Disconnect</button>
-<button onclick="SetColor(1)">Write 1</button>
-<button onclick="SetColor(0)">Write 0</button>
-<div>Button value: {{ buttonValue }}</div>
+  <button v-on:click="connect">Connect</button>
+  <button v-on:click="disconnectAll">Disconnect all</button>
+  <div v-for="remote in remoteDevices">
+    {{ remote.name }} ({{ remote.id }})
+    <button @click="setColor(remote.id, 1)">Write 1</button>
+    <button @click="setColor(remote.id, 0)">Write 0</button>
+    Button value:  {{ remote.buttonValue }}
+  </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 <script src="https://www.gstatic.com/firebasejs/6.6.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/6.6.1/firebase-firestore.js"></script>
 <script>
-var gDevice = undefined;
-var gServer = undefined;
-
-var vm = new Vue({
-  el: '#app',
-  data: {
-    input: '# hello',
-    buttonValue: 0,
-  }
-})
-
 
 firebase.initializeApp({
   projectId: 'larp-hardware'
 });
 var db = firebase.firestore();
-var doc = db.collection("firefly").doc("aeremin")
-doc.onSnapshot(onFirestoreChange);
 
-function Connect() {
-  navigator.bluetooth.requestDevice({
-    filters: [{ services: ['00001523-1212-efde-1523-785feabcd123'] }],
-  })
-  .then(device => {
-    device.gatt.connect().then(server => {
-      gServer = server
-
-      server.getPrimaryService('00001523-1212-efde-1523-785feabcd123')
-      .then(service => service.getCharacteristic('00001524-1212-efde-1523-785feabcd123'))
-      .then(characteristic => characteristic.startNotifications())
-      .then(characteristic => {
-        characteristic.addEventListener('characteristicvaluechanged', HandleButtonStateChanged);
-        console.log('Notifications have been started.');
+var vue = new Vue({
+  el: '#app',
+  data: {
+    connectedDevices: [],
+    remoteDevices: [],
+  },
+  methods: {
+    connect: function() {
+      navigator.bluetooth.requestDevice({
+        filters: [{ services: ['00001523-1212-efde-1523-785feabcd123'] }],
       })
-      .catch(error => { console.log(error); });
-    });
-    gDevice = device
-  })
-  .catch(error => console.log(error));
-}
+      .then(device => {
+        device.gatt.connect().then(server => {
+          const doc = db.collection("firefly").doc(device.id);
+          doc.set({connected: true, name: device.name}, {merge: true});
+          const unsubscriber = doc.onSnapshot(doc => {
+            var data = doc.data();
+            console.log("Current data: ", data);
+            if (data.color != undefined) this.writeBle(server, data.color);
+          });
+          this.connectedDevices.push({device, server, doc, unsubscriber})
 
-function Disconnect() {
-  gDevice.gatt.disconnect();
-  gDevice = undefined;
-  gServer = undefined;
-}
-
-function SetColor(value) {
-  doc.set({color: value}, {merge: true});
-}
-
-function HandleButtonStateChanged(event) {
-  var value = event.target.value.getUint8(0);
-  doc.set({buttonValue: value}, {merge: true});
-}
-
-function onFirestoreChange(doc) {
-  var data = doc.data();
-  console.log("Current data: ", data);
-  WriteBle(data.color);
-  vm.buttonValue = data.buttonValue;
-}
-
-function WriteBle(value) {
-    if (gServer) {
-      gServer.getPrimaryService('00001523-1212-efde-1523-785feabcd123')
+          server.getPrimaryService('00001523-1212-efde-1523-785feabcd123')
+          .then(service => service.getCharacteristic('00001524-1212-efde-1523-785feabcd123'))
+          .then(characteristic => characteristic.startNotifications())
+          .then(characteristic => {
+            characteristic.addEventListener('characteristicvaluechanged', event => {
+              var value = event.target.value.getUint8(0);
+              doc.set({buttonValue: value}, {merge: true});
+            });
+            console.log('Notifications have been started.');
+          })
+          .catch(error => { console.log(error); });
+        });
+      })
+      .catch(error => console.log(error));
+    },
+    disconnectAll: function() {
+      for (const d of this.connectedDevices) {
+        d.device.gatt.disconnect();
+        d.doc.set({connected: false}, {merge: true});
+        d.unsubscriber();
+      }
+      this.connectedDevices = [];
+    },
+    writeBle: function(server, value) {
+      server.getPrimaryService('00001523-1212-efde-1523-785feabcd123')
         .then(service => service.getCharacteristic('00001525-1212-efde-1523-785feabcd123'))
         .then(characteristic => characteristic.writeValue(Uint8Array.of(value)))
         .catch(error => console.log(error));
-    }
-}
+    },
+    onCollectionSnapshot: function(snapshot) {
+      this.remoteDevices = [];
+      snapshot.forEach((doc) => {
+        if (doc.data().connected) this.remoteDevices.push({id: doc.id, name: doc.data().name, buttonValue: doc.data().buttonValue});
+      });
+    },
+    setColor: function(id, color) {
+      db.collection("firefly").doc(id).set({color}, {merge: true});
+    },
+  }
+})
+
+db.collection("firefly").onSnapshot(snapshot => vue.onCollectionSnapshot(snapshot));
 
 </script>
 
