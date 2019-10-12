@@ -34,17 +34,25 @@ void SetupTimer() {
 
 MagicPathRadioPacket gColor = {/*r = */30, /*g = */0, /*b = */30};
 
+uint8_t button_state = 0;
+bool transmitted_button_state = false;
+
 static TaskHandle_t g_radio_task_handle = 0;
 static void RadioTask(void*) {
   cc1101.Init();
   cc1101.SetChannel(1);
   
   while (true) {
+    if (!transmitted_button_state) {
+      transmitted_button_state = true;
+      BluetoothLowEnergy::Instance().SetButtonState(button_state);
+    }
     cc1101.Transmit(gColor);
     nrf_delay_ms(100);
     NRF_LOG_FLUSH();
   } 
 }
+
 
 void ButtonEventHandler(uint8_t pin_no, uint8_t button_action)
 {
@@ -55,11 +63,13 @@ void ButtonEventHandler(uint8_t pin_no, uint8_t button_action)
   switch (pin_no)
   {
     case BUTTON_1:
-      BluetoothLowEnergy::Instance().SetButtonState(1);
+      transmitted_button_state = false;
+      button_state = 1;
       break;
 
     case BUTTON_2:
-      BluetoothLowEnergy::Instance().SetButtonState(0);
+      transmitted_button_state = false;
+      button_state = 0;
       break;
 
     default:
