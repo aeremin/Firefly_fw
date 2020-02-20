@@ -31,7 +31,7 @@ class Cc1101 {
     } else {
       EnterIdle();
       return false;
-    } 
+    }
   }
 
   template<typename RadioPacketT>
@@ -45,7 +45,7 @@ class Cc1101 {
 
  private:
   // Sends a single-byte instruction to the CC1101.
-  // See documentation of instructions in datasheet, p.32, 
+  // See documentation of instructions in datasheet, p.32,
   // 10.4 Command Strobes
   // If status is provided, status byte will be written into it.
   void WriteStrobe(uint8_t instruction, uint8_t* status = nullptr);
@@ -59,7 +59,7 @@ class Cc1101 {
   // Reads a configuration or status register.
   // If status is provided, status byte will be written into it.
   uint8_t ReadRegister(uint8_t reg, uint8_t* status = nullptr);
-  
+
   template<typename RadioPacketT>
   bool ReadFifo(RadioPacketT* result) {
     uint8_t status = 0;
@@ -72,8 +72,7 @@ class Cc1101 {
     uint8_t rx[sizeof(RadioPacketT) + 3];
     APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi_, &tx, 1, rx, sizeof(RadioPacketT) + 3));
 
-    RadioPacketT PktRx;
-    memcpy(&PktRx, rx + 1, sizeof(RadioPacketT));
+    memcpy(result, rx + 1, sizeof(RadioPacketT));
     return true;
   }
 
